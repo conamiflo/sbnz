@@ -1,8 +1,8 @@
-package rules
+package forward
 
-import com.socialmedia.model.User
-import com.socialmedia.model.Post
-import com.socialmedia.model.Recommendation
+import com.ftn.sbnz.model.models.Post;
+import com.ftn.sbnz.model.models.Recommendation;
+import com.ftn.sbnz.model.models.User;
 import java.time.LocalDateTime
 import java.time.DayOfWeek
 
