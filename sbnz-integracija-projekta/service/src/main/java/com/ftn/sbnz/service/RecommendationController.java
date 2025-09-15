@@ -37,12 +37,10 @@ public class RecommendationController {
             response.setSuccess(true);
             response.setMessage("Successfully generated " + recommendations.size() + " recommendations");
             
-            // Grupišemo po korisniku za lakši prikaz
             Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
                     .collect(Collectors.groupingBy(Recommendation::getUserId));
             response.setRecommendationsByUser(recommendationsByUser);
             
-            // Statistike
             double avgScore = recommendations.stream()
                     .mapToDouble(Recommendation::getPriorityScore)
                     .average().orElse(0.0);
@@ -69,19 +67,10 @@ public class RecommendationController {
         return generateRecommendations(demoRequest);
     }
     
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok(Map.of(
-            "status", "UP",
-            "service", "Social Media Expert Recommendation System",
-            "version", "1.0.0"
-        ));
-    }
-    
+
     private RecommendationRequest createDemoData() {
         RecommendationRequest request = new RecommendationRequest();
         
-        // Demo korisnici
         User user1 = new User("user1", "Marko Petrović", 28, "Novi Sad", "M", "influencer", 5000);
         user1.addInterest("fitness");
         user1.addInterest("lifestyle");
@@ -100,8 +89,7 @@ public class RecommendationController {
         
         request.setUsers(List.of(user1, user2, user3, user4));
         
-        // Demo objave
-        Post post1 = new Post("post1", "user3", "HIIT Summer Workout - 15 minuta do savršene forme!", 
+        Post post1 = new Post("post1", "user3", "HIIT Summer Workout - 15 minuta do savršene forme!",
                              "video", "fitness");
         post1.addHashtag("#fitness");
         post1.addHashtag("#hiit");

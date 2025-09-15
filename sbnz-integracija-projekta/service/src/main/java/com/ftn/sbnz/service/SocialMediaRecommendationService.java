@@ -32,18 +32,15 @@ public class SocialMediaRecommendationService {
 
         try {
 
-            // Use the fwKsession since your rules are now in the forward package
             if (kieContainer != null) {
                 try {
                     kieSession = kieContainer.newKieSession("fwKsession");
                     log.info("Using fwKsession for forward package rules");
                 } catch (Exception e) {
-                    // Fallback to default session
                     log.warn("fwKsession not found, trying default session: " + e.getMessage());
                     kieSession = kieContainer.newKieSession();
                 }
             } else {
-                // Fallback to classpath container
                 log.warn("No KieContainer injected, using classpath container");
                 KieServices kieServices = KieServices.Factory.get();
                 KieContainer fallbackContainer = kieServices.getKieClasspathContainer();
@@ -54,7 +51,6 @@ public class SocialMediaRecommendationService {
             System.out.println("Users: " + users.size() + ", Posts: " + posts.size());
             System.out.println();
 
-            // Insert all users and posts into working memory
             for (User user : users) {
                 kieSession.insert(user);
                 System.out.println("Inserted user: " + user.getName() + " (" + user.getCreatorType() + ")");
@@ -68,13 +64,11 @@ public class SocialMediaRecommendationService {
             System.out.println();
             System.out.println("=== FIRING RULES ===");
 
-            // Fire all rules
             int rulesTriggered = kieSession.fireAllRules();
             System.out.println();
             System.out.println("Total rules triggered: " + rulesTriggered);
             System.out.println();
 
-            // Collect recommendations from working memory
             List<Recommendation> recommendations = new ArrayList<>();
             for (Object fact : kieSession.getObjects()) {
                 if (fact instanceof Recommendation) {
@@ -84,7 +78,6 @@ public class SocialMediaRecommendationService {
 
             System.out.println("Found " + recommendations.size() + " recommendations in working memory");
 
-            // Sort by priority score (highest first)
             recommendations.sort((r1, r2) -> Double.compare(r2.getPriorityScore(), r1.getPriorityScore()));
 
             return recommendations;
@@ -108,7 +101,6 @@ public class SocialMediaRecommendationService {
             return;
         }
 
-        // Group by user
         Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
                 .collect(Collectors.groupingBy(Recommendation::getUserId));
 

@@ -6,12 +6,11 @@ import com.ftn.sbnz.model.models.User;
 import java.time.LocalDateTime
 import java.time.DayOfWeek
 
-// Pravilo 1: Preporuka sadržaja na osnovu interesovanja korisnika
 rule "Content Recommendation Based on Interests"
     when
         $user: User($userId: id, $interests: interests)
         $post: Post(userId != $userId, category memberOf $interests, 
-                    engagementRate > 0.03) // Minimalni engagement rate
+                    engagementRate > 0.03)
         not Recommendation(userId == $userId, postId == $post.id)
     then
         Recommendation rec = new Recommendation($userId, $post.getId(), 
@@ -22,11 +21,10 @@ rule "Content Recommendation Based on Interests"
         rec.setReasoning("Matches user interests: " + $post.getCategory());
         rec.setPredictedEngagement($post.getEngagementRate());
         insert(rec);
-        System.out.println("✓ Created interest-based recommendation for user: " + 
+        System.out.println("Created interest-based recommendation for user: " +
                           $user.getName() + " -> " + $post.getCategory() + " content");
 end
 
-// Pravilo 2: Bonus za video sadržaj ako je korisnik influenser
 rule "Video Content Bonus for Influencers"
     when
         $user: User($userId: id, creatorType == "influencer")
@@ -35,17 +33,15 @@ rule "Video Content Bonus for Influencers"
     then
         $rec.increasePriorityScore(2.0, "Video content bonus for influencer");
         update($rec);
-        System.out.println("✓ Video bonus applied for influencer: " + $user.getName());
+        System.out.println("Video bonus applied for influencer: " + $user.getName());
 end
 
-// Pravilo 3: Preporuka optimalnog vremena objavljivanja
 rule "Optimal Publishing Time Recommendation"
     when
         $user: User($userId: id, creatorType == "influencer", audienceSize > 1000)
         $rec: Recommendation(userId == $userId, contentType == "video", 
                            recommendedPublishTime == null)
     then
-        // Za influensere sa velikim brojem pratilaca, preporuči večernje sate
         LocalDateTime optimalTime = LocalDateTime.now()
                                                 .with(DayOfWeek.TUESDAY)
                                                 .withHour(18)
@@ -53,6 +49,6 @@ rule "Optimal Publishing Time Recommendation"
         $rec.setRecommendedPublishTime(optimalTime);
         $rec.increasePriorityScore(1.5, "Optimal time for large audience");
         update($rec);
-        System.out.println("✓ Optimal time set for " + $user.getName() + 
+        System.out.println("Optimal time set for " + $user.getName() +
                           ": " + optimalTime.getDayOfWeek() + " at 18:00");
 end
