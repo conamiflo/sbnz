@@ -1,0 +1,150 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "name": "Marko Petrović",
+      "age": 28,
+      "location": "Novi Sad",
+      "gender": "M",
+      "creatorType": "influencer",
+      "audienceSize": 5000,
+      "interests": ["fitness", "lifestyle"]
+    },
+    {
+      "id": "user2",
+      "name": "Ana Jovanović",
+      "age": 25,
+      "location": "Novi Sad", 
+      "gender": "F",
+      "creatorType": "personal",
+      "audienceSize": 800,
+      "interests": ["food", "travel"]
+    },
+    {
+      "id": "user3",
+      "name": "Stefan Nikolić",
+      "age": 30,
+      "location": "Belgrade",
+      "gender": "M", 
+      "creatorType": "brand",
+      "audienceSize": 15000,
+      "interests": ["fitness", "technology"]
+    },
+    {
+      "id": "user4",
+      "name": "Milica Stojanović",
+      "age": 27,
+      "location": "Novi Sad",
+      "gender": "F",
+      "creatorType": "influencer", 
+      "audienceSize": 3200,
+      "interests": ["lifestyle", "food"]
+    }
+  ],
+  "posts": [
+    {
+      "id": "post1",
+      "userId": "user3",
+      "content": "HIIT Summer Workout - 15 minuta do savršene forme!",
+      "contentType": "video",
+      "category": "fitness",
+      "hashtags": ["#fitness", "#hiit", "#summer"],
+      "likes": 150,
+      "comments": 25,
+      "shares": 12,
+      "reach": 2500,
+      "engagementRate": 0.0748
+    },
+    {
+      "id": "post2", 
+      "userId": "user2",
+      "content": "Najbolji recept za letnju salatu sa avokadom",
+      "contentType": "image",
+      "category": "food",
+      "hashtags": ["#healthyfood", "#avocado", "#summer"],
+      "likes": 89,
+      "comments": 15,
+      "shares": 8,
+      "reach": 1800,
+      "engagementRate": 0.0622
+    },
+    {
+      "id": "post3",
+      "userId": "user4", 
+      "content": "Moja jutarnja rutina za produktivan dan",
+      "contentType": "video",
+      "category": "lifestyle",
+      "hashtags": ["#lifestyle", "#morning", "#routine"],
+      "likes": 95,
+      "comments": 18,
+      "shares": 6,
+      "reach": 2200,
+      "engagementRate": 0.0541
+    },
+    {
+      "id": "post4",
+      "userId": "user1",
+      "content": "Beach body transformation - pre i posle", 
+      "contentType": "image",
+      "category": "fitness",
+      "hashtags": ["#transformation", "#fitness", "#beach"],
+      "likes": 203,
+      "comments": 31,
+      "shares": 18,
+      "reach": 4200,
+      "engagementRate": 0.06
+    },
+    {
+      "id": "post5",
+      "userId": "user4",
+      "content": "Top 5 mesta u Novom Sadu za savršenu fotografiju",
+      "contentType": "text", 
+      "category": "lifestyle",
+      "hashtags": ["#novised", "#photography", "#lifestyle"],
+      "likes": 67,
+      "comments": 12,
+      "shares": 4,
+      "reach": 1500,
+      "engagementRate": 0.0553
+    },
+    {
+      "id": "post6",
+      "userId": "user2",
+      "content": "Putovanje kroz Srbiju - skriveni dragulji",
+      "contentType": "video",
+      "category": "travel",
+      "hashtags": ["#travel", "#serbia", "#explore"],
+      "likes": 134,
+      "comments": 22,
+      "shares": 15,
+      "reach": 2800,
+      "engagementRate": 0.0611
+    },
+    {
+      "id": "post7",
+      "userId": "user3",
+      "content": "Najnovije tehnologije u fitness industriji",
+      "contentType": "text",
+      "category": "technology", 
+      "hashtags": ["#technology", "#fitness", "#innovation"],
+      "likes": 78,
+      "comments": 12,
+      "shares": 5,
+      "reach": 1200,
+      "engagementRate": 0.0792
+    },
+    {
+      "id": "post8",
+      "userId": "user1",
+      "content": "Lifestyle tips za bolje mentalno zdravlje",
+      "contentType": "image",
+      "category": "lifestyle",
+      "hashtags": ["#mentalhealth", "#lifestyle", "#wellness"],
+      "likes": 112,
+      "comments": 28,
+      "shares": 9,
+      "reach": 2100,
+      "engagementRate": 0.071
+    }
+  ]
+}
