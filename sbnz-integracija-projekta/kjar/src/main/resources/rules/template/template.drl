@@ -1,0 +1,29 @@
+package template
+
+template header RecommendationTemplate
+    postId: String
+    userId: String
+    priorityScore: Double
+    predictedMetric: String
+    optimalTime: String
+end
+
+rule "Visualize Recommendation"
+when
+    $r: RecommendationTemplate()
+then
+    System.out.println("Displaying post " + $r.getPostId() 
+        + " for user " + $r.getUserId() 
+        + " | Priority: " + $r.getPriorityScore() 
+        + " | Metric: " + $r.getPredictedMetric() 
+        + " | Optimal time: " + $r.getOptimalTime());
+end
+
+rule "Personalize By Interest"
+when
+    $r: RecommendationTemplate()
+    // optionally you can check user interest if available in fact model
+then
+    System.out.println("Personalized recommendation for user " + $r.getUserId() 
+        + " based on interest, post type, etc.");
+end

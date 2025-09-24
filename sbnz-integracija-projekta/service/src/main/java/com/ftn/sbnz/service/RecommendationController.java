@@ -24,6 +24,20 @@ public class RecommendationController {
     @Autowired
     private SocialMediaRecommendationService recommendationService;
     
+    @Autowired
+    private TemplateService templateService;
+
+    @PostMapping("/visualize")
+    public ResponseEntity<String> visualizeRecommendations(@RequestBody RecommendationRequest request) {
+        List<Recommendation> recommendations = recommendationService.generateRecommendations(
+            request.getUsers(), request.getPosts()
+        );
+
+        droolsService.fireRecommendations(recommendations);
+
+        return ResponseEntity.ok("Recommendations visualized via Drools template!");
+    }
+
     @PostMapping("/generate")
     public ResponseEntity<RecommendationResponse> generateRecommendations(
             @RequestBody RecommendationRequest request) {
