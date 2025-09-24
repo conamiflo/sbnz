@@ -188,9 +188,9 @@ public class SocialMediaRecommendationService {
         for (int i = 0; i < 50; i++) {
             double goodEngagement = 0.04 + (Math.random() * 0.02);
             kieSession.insert(new EngagementEvent(goodEngagement));
+            clock.advanceTime(1, TimeUnit.HOURS);
         }
 
-        clock.advanceTime(3, TimeUnit.DAYS);
 
         for (int i = 0; i < 10; i++) {
             double badEngagement = 0.01 + (Math.random() * 0.02);
