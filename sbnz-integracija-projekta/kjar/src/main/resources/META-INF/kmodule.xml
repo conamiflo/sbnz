@@ -8,6 +8,9 @@
     <kbase name="fwKbase" eventProcessingMode="stream" packages="forward">
         <ksession name="fwKsession" clockType="pseudo"/>
     </kbase>
+    <kbase name="templateKbase" eventProcessingMode="stream" packages="template">
+        <ksession name="templateKsession" clockType="pseudo"/>
+    </kbase>
 
     <kbase name="rulesBase" packages="rules">
         <ksession name="rulesKsession" default="true"/>
