@@ -2,6 +2,9 @@ package cep;
 
 import com.ftn.sbnz.model.events.HashtagUsageEvent;
 import com.ftn.sbnz.model.models.TrendingHashtag;
+import com.ftn.sbnz.model.events.EngagementEvent;
+import com.ftn.sbnz.model.models.EngagementDropAlert;
+
 
 declare HashtagUsageEvent
     @role(event)
@@ -29,4 +32,26 @@ rule "Detect Trending Hashtag Spike"
         System.out.println("CEP RULE TRIGGERED: Hashtag #" + $tag + " is trending!");
         System.out.println("   -> Recent usage (6h): " + $recentCount + ", Daily avg (7d): " + String.format("%.2f", $baselineCount.doubleValue() / 7));
         insert(new TrendingHashtag($tag));
+end
+
+rule "Detect Engagement Drop"
+    when
+        $baseAvg: Double() from accumulate(
+            $event1: EngagementEvent() over window:time(7d),
+            average($event1.getEngagementRate())
+        )
+
+        $recentAvg: Double() from accumulate(
+            $event2: EngagementEvent() over window:time(12h),
+            average($event2.getEngagementRate())
+        )
+
+        eval($baseAvg != null && $recentAvg != null && $recentAvg < (0.6 * $baseAvg))
+
+        not EngagementDropAlert()
+    then
+        String msg = "Engagement drop detected. Recent avg: " + String.format("%.3f", $recentAvg) +
+                     " vs. baseline: " + String.format("%.3f", $baseAvg);
+        System.out.println("CEP RULE TRIGGERED: " + msg);
+        insert(new EngagementDropAlert(msg, $recentAvg, $baseAvg));
 end

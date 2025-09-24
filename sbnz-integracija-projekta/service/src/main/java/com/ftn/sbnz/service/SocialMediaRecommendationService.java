@@ -1,16 +1,14 @@
 package com.ftn.sbnz.service;
 
+import com.ftn.sbnz.model.events.EngagementEvent;
 import com.ftn.sbnz.model.events.HashtagUsageEvent;
-import com.ftn.sbnz.model.models.TrendingHashtag;
+import com.ftn.sbnz.model.models.*;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.time.SessionPseudoClock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ftn.sbnz.model.models.Post;
-import com.ftn.sbnz.model.models.Recommendation;
-import com.ftn.sbnz.model.models.User;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,6 +180,36 @@ public class SocialMediaRecommendationService {
     }
 
 
+    public EngagementDropAlert detectEngagementDrop() {
+        KieSession kieSession = kieContainer.newKieSession("cepKsession");
+        SessionPseudoClock clock = kieSession.getSessionClock();
 
+
+        for (int i = 0; i < 50; i++) {
+            double goodEngagement = 0.04 + (Math.random() * 0.02);
+            kieSession.insert(new EngagementEvent(goodEngagement));
+        }
+
+        clock.advanceTime(3, TimeUnit.DAYS);
+
+        for (int i = 0; i < 10; i++) {
+            double badEngagement = 0.01 + (Math.random() * 0.02);
+            kieSession.insert(new EngagementEvent(badEngagement));
+            clock.advanceTime(1, TimeUnit.HOURS);
+        }
+
+        kieSession.fireAllRules();
+
+        EngagementDropAlert alert = null;
+        for (Object fact : kieSession.getObjects()) {
+            if (fact instanceof EngagementDropAlert) {
+                alert = (EngagementDropAlert) fact;
+                break;
+            }
+        }
+
+        kieSession.dispose();
+        return alert;
+    }
 
 }

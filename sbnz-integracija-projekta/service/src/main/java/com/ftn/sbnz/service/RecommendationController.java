@@ -1,16 +1,13 @@
 package com.ftn.sbnz.service;
 
 
-import com.ftn.sbnz.model.models.TrendingHashtag;
+import com.ftn.sbnz.model.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.ftn.sbnz.model.dto.RecommendationRequest;
 import com.ftn.sbnz.model.dto.RecommendationResponse;
-import com.ftn.sbnz.model.models.Post;
-import com.ftn.sbnz.model.models.Recommendation;
-import com.ftn.sbnz.model.models.User;
 
 import java.util.List;
 import java.util.Map;
@@ -27,13 +24,14 @@ public class RecommendationController {
     @Autowired
     private TemplateService templateService;
 
+
     @PostMapping("/visualize")
     public ResponseEntity<String> visualizeRecommendations(@RequestBody RecommendationRequest request) {
         List<Recommendation> recommendations = recommendationService.generateRecommendations(
             request.getUsers(), request.getPosts()
         );
 
-        droolsService.fireRecommendations(recommendations);
+        templateService.fireRecommendations(recommendations);
 
         return ResponseEntity.ok("Recommendations visualized via Drools template!");
     }
@@ -169,6 +167,20 @@ public class RecommendationController {
         try {
             List<TrendingHashtag> trending = recommendationService.detectTrendingHashtags();
             return ResponseEntity.ok(trending);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping("/engagement-drop-demo")
+    public ResponseEntity<EngagementDropAlert> getEngagementDrop() {
+        try {
+            EngagementDropAlert alert = recommendationService.detectEngagementDrop();
+            if (alert != null) {
+                return ResponseEntity.ok(alert);
+            }
+            return ResponseEntity.ok(new EngagementDropAlert("No significant engagement drop detected.", 0, 0));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).build();

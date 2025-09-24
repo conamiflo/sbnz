@@ -28,7 +28,6 @@ public class TemplateService {
     public List<Recommendation> fireRecommendations(List<Recommendation> recommendations) {
         KieSession kieSession = null;
         try {
-            // Try to get a session specifically for template rules
             if (kieContainer != null) {
                 try {
                     kieSession = kieContainer.newKieSession("templateKsession");
@@ -48,7 +47,6 @@ public class TemplateService {
             System.out.println("Recommendations to process: " + recommendations.size());
             System.out.println();
 
-            // Insert recommendations as facts
             for (Recommendation r : recommendations) {
                 kieSession.insert(r);
                 System.out.println("Inserted recommendation for user: " + r.getUserId()
@@ -60,7 +58,6 @@ public class TemplateService {
             System.out.println("Total template rules triggered: " + rulesTriggered);
             System.out.println();
 
-            // Collect any Recommendation objects created/modified by rules
             List<Recommendation> processed = new ArrayList<>();
             for (Object fact : kieSession.getObjects()) {
                 if (fact instanceof Recommendation) {
