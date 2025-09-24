@@ -1,8 +1,11 @@
 package com.ftn.sbnz.service;
 
+import com.ftn.sbnz.model.events.HashtagUsageEvent;
+import com.ftn.sbnz.model.models.TrendingHashtag;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.time.SessionPseudoClock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ftn.sbnz.model.models.Post;
@@ -13,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -148,4 +152,36 @@ public class SocialMediaRecommendationService {
                         .mapToLong(r -> r.getPriorityScore() > 6.0 ? 1 : 0)
                         .sum());
     }
+
+    public List<TrendingHashtag> detectTrendingHashtags() {
+        KieSession kieSession = kieContainer.newKieSession("cepKsession");
+        SessionPseudoClock clock = kieSession.getSessionClock();
+        List<TrendingHashtag> trendingList = new ArrayList<>();
+
+
+        for (int i = 0; i < 14; i++) {
+            kieSession.insert(new HashtagUsageEvent("#fitness"));
+            clock.advanceTime(12, TimeUnit.HOURS);
+        }
+
+        for (int i = 0; i < 40; i++) {
+            kieSession.insert(new HashtagUsageEvent("#fitness"));
+            clock.advanceTime(9, TimeUnit.MINUTES);
+        }
+
+        kieSession.fireAllRules();
+
+        for (Object fact : kieSession.getObjects()) {
+            if (fact instanceof TrendingHashtag) {
+                trendingList.add((TrendingHashtag) fact);
+            }
+        }
+
+        kieSession.dispose();
+        return trendingList;
+    }
+
+
+
+
 }

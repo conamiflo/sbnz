@@ -1,6 +1,7 @@
 package com.ftn.sbnz.service;
 
 
+import com.ftn.sbnz.model.models.TrendingHashtag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -148,4 +149,17 @@ public class RecommendationController {
         
         return request;
     }
+
+    @GetMapping("/cep-demo")
+    public ResponseEntity<List<TrendingHashtag>> getTrendingHashtags() {
+        try {
+            List<TrendingHashtag> trending = recommendationService.detectTrendingHashtags();
+            return ResponseEntity.ok(trending);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+
 }
