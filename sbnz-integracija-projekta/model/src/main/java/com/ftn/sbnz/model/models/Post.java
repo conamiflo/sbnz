@@ -1,15 +1,23 @@
 package com.ftn.sbnz.model.models;
 
+import lombok.*;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
+@Entity
 public class Post {
-    private String id;
+    @Id
+    private Long id;
     private String userId;
     private String content;
     private String contentType; 
-    private String category; 
+    private String category;
+    @ElementCollection
     private List<String> hashtags;
     private LocalDateTime publishTime;
     private int likes;
@@ -23,7 +31,7 @@ public class Post {
         this.publishTime = LocalDateTime.now();
     }
     
-    public Post(String id, String userId, String content, String contentType, String category) {
+    public Post(Long id, String userId, String content, String contentType, String category) {
         this.id = id;
         this.userId = userId;
         this.content = content;
@@ -32,10 +40,7 @@ public class Post {
         this.hashtags = new ArrayList<>();
         this.publishTime = LocalDateTime.now();
     }
-    
-    // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+
     
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
@@ -90,5 +95,13 @@ public class Post {
                 ", hashtags=" + hashtags +
                 ", engagementRate=" + engagementRate +
                 '}';
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 }
