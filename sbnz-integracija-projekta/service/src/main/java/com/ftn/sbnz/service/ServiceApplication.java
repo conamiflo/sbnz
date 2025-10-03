@@ -2,6 +2,7 @@ package com.ftn.sbnz.service;
 
 import java.util.Arrays;
 
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.kie.api.KieServices;
@@ -15,10 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication
 @EntityScan(basePackages = "com.ftn.sbnz.model.models")
-@ComponentScan(basePackages = { "com.ftn.sbnz.model"})
 @EnableJpaRepositories(basePackages = "com.ftn.sbnz.service.repositories")
+@SpringBootApplication
 public class ServiceApplication  {
 	
 	private static Logger log = LoggerFactory.getLogger(ServiceApplication.class);
