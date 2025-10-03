@@ -52,6 +52,9 @@
 			<artifactId>drools-compiler</artifactId>
 			<version>${drools.version}</version>
 		</dependency>
+
+
+
 	</dependencies>
 
 	<build>
