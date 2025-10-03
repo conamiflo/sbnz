@@ -3,52 +3,104 @@ package forward
 import com.ftn.sbnz.model.models.Post;
 import com.ftn.sbnz.model.models.Recommendation;
 import com.ftn.sbnz.model.models.User;
-import java.time.LocalDateTime
-import java.time.DayOfWeek
+import com.ftn.sbnz.model.models.EngagementHistory;
+import com.ftn.sbnz.model.models.TrendingHashtag;
+import com.ftn.sbnz.model.models.UserGoal;
 
-rule "Content Recommendation Based on Interests"
-    when
-        $user: User($userId: id, $interests: interests)
-        $post: Post(userId != $userId, category memberOf $interests, 
-                    engagementRate > 0.03)
-        not Recommendation(userId == $userId, postId == $post.id)
-    then
-        Recommendation rec = new Recommendation($userId, $post.getId(), 
-                                              $post.getContentType(), 
-                                              $post.getCategory(), 
-                                              $post.getContent());
-        rec.setPriorityScore(5.0);
-        rec.setReasoning("Matches user interests: " + $post.getCategory());
-        rec.setPredictedEngagement($post.getEngagementRate());
-        insert(rec);
-        System.out.println("Created interest-based recommendation for user: " +
-                          $user.getName() + " -> " + $post.getCategory() + " content");
+import java.time.LocalDateTime;
+import java.time.DayOfWeek;
+
+
+rule "Nivo 1 - Interest-Based Recommendation"
+when
+    $user: User($userId: id, $interests: interests)
+    $post: Post(userId != $userId, category memberOf $interests, engagementRate > 0.03)
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation($userId, $post.getId(),
+                                          $post.getContentType(),
+                                          $post.getCategory(),
+                                          $post.getContent());
+    rec.setPriorityScore(5.0);
+    rec.setReasoning("Matches user interests: " + $post.getCategory());
+    rec.setPredictedEngagement($post.getEngagementRate());
+    insert(rec);
+    System.out.println("[NIVO 1] Interest-based recommendation for user: " +
+                      $user.getName() + " -> " + $post.getCategory());
 end
 
-rule "Video Content Bonus for Influencers"
-    when
-        $user: User($userId: id, creatorType == "influencer")
-        $rec: Recommendation(userId == $userId, contentType == "video", 
-                           priorityScore < 8.0)
-    then
-        $rec.increasePriorityScore(2.0, "Video content bonus for influencer");
-        update($rec);
-        System.out.println("Video bonus applied for influencer: " + $user.getName());
+rule "Nivo 2 - Video Bonus for Influencers"
+when
+    $user: User($userId: id, creatorType == "influencer")
+    $rec: Recommendation(userId == $userId, contentType == "video", priorityScore < 8.0)
+then
+    $rec.increasePriorityScore(2.0, "Video content bonus for influencer");
+    update($rec);
+    System.out.println("[NIVO 2] Video bonus applied for influencer: " + $user.getName());
 end
 
-rule "Optimal Publishing Time Recommendation"
-    when
-        $user: User($userId: id, creatorType == "influencer", audienceSize > 1000)
-        $rec: Recommendation(userId == $userId, contentType == "video", 
-                           recommendedPublishTime == null)
-    then
-        LocalDateTime optimalTime = LocalDateTime.now()
-                                                .with(DayOfWeek.TUESDAY)
-                                                .withHour(18)
-                                                .withMinute(0);
-        $rec.setRecommendedPublishTime(optimalTime);
-        $rec.increasePriorityScore(1.5, "Optimal time for large audience");
-        update($rec);
-        System.out.println("Optimal time set for " + $user.getName() +
-                          ": " + optimalTime.getDayOfWeek() + " at 18:00");
+rule "Nivo 3 - Trending Hashtag Boost"
+when
+    $trend: TrendingHashtag($tag: tag, popularity > 70)
+    $rec: Recommendation()
+    eval($rec.getContent() != null &&
+         $rec.getContent() contains $tag &&
+         ($rec.getReasoning() == null || !$rec.getReasoning() contains $tag))
+then
+    $rec.increasePriorityScore(1.5, "Matches trending hashtag: " + $tag);
+    update($rec);
+    System.out.println("[NIVO 3] Trend boost applied: " + $tag);
+end
+
+rule "Nivo 4 - Optimal Publishing Time"
+when
+    $user: User($userId: id, creatorType == "influencer", audienceSize > 1000)
+    $rec: Recommendation(userId == $userId, recommendedPublishTime == null)
+then
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(18)
+                                             .withMinute(0);
+    $rec.setRecommendedPublishTime(optimalTime);
+    $rec.increasePriorityScore(1.5, "Optimal publish time for large audience");
+    update($rec);
+    System.out.println("[NIVO 4] Optimal publish time set for " + $user.getName() +
+                      ": " + optimalTime.getDayOfWeek() + " at 18:00");
+end
+
+rule "Nivo 5 - Personalization Based on Goals"
+when
+    $goal: UserGoal($userId: userId, target == "engagement")
+    $rec: Recommendation(userId == $userId, contentType == "video")
+then
+    $rec.increasePriorityScore(2.0, "Engagement-focused boost");
+    update($rec);
+    System.out.println("[NIVO 5] Personalized boost for engagement goal");
+end
+
+rule "Nivo 5b - Personalization for Reach Goals"
+when
+    $goal: UserGoal($userId: userId, target == "reach")
+    $rec: Recommendation(userId == $userId, contentType == "post")
+then
+    $rec.increasePriorityScore(2.0, "Reach-focused boost");
+    update($rec);
+    System.out.println("[NIVO 5b] Personalized boost for reach goal");
+end
+
+rule "Nivo 6 - Filter Weak Recommendations"
+when
+    $rec: Recommendation(priorityScore < 3.0)
+then
+    retract($rec);
+    System.out.println("[NIVO 6] Removed weak recommendation (score < 3)");
+end
+
+rule "Nivo 6b - Finalize Strong Recommendations"
+when
+    $rec: Recommendation(priorityScore >= 3.0)
+then
+    $rec.setReasoning(($rec.getReasoning() != null ? $rec.getReasoning() : "") + " | Finalized");
+    update($rec);
+    System.out.println("[NIVO 6b] Final recommendation retained: " + $rec.getPostId());
 end

@@ -2,6 +2,7 @@ package com.ftn.sbnz.model.models;
 
 import lombok.*;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
@@ -25,6 +26,8 @@ public class Post {
     private int shares;
     private int reach;
     private double engagementRate;
+    private int minAge;
+    private int maxAge;
     
     public Post() {
         this.hashtags = new ArrayList<>();

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class Recommendation {
     private String id;
     private String userId;
-    private String postId;
+    private Long postId;
     private String contentType;
     private String category;
     private String content;
@@ -19,7 +19,7 @@ public class Recommendation {
         this.status = "pending";
     }
     
-    public Recommendation(String userId, String postId, String contentType, String category, String content) {
+    public Recommendation(String userId, Long postId, String contentType, String category, String content) {
         this.userId = userId;
         this.postId = postId;
         this.contentType = contentType;
@@ -37,8 +37,8 @@ public class Recommendation {
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
     
-    public String getPostId() { return postId; }
-    public void setPostId(String postId) { this.postId = postId; }
+    public Long getPostId() { return postId; }
+    public void setPostId(Long postId) { this.postId = postId; }
     
     public String getContentType() { return contentType; }
     public void setContentType(String contentType) { this.contentType = contentType; }
