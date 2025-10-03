@@ -1,4 +1,4 @@
-package com.ftn.sbnz.model.dto;
+package com.ftn.sbnz.model.dto.response;
 
 import java.util.List;
 import java.util.Map;

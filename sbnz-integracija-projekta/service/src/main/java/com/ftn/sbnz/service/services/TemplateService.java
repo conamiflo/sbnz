@@ -1,4 +1,4 @@
-package com.ftn.sbnz.service;
+package com.ftn.sbnz.service.services;
 
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;

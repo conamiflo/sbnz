@@ -2,9 +2,7 @@ package com.ftn.sbnz.model.models;
 
 import lombok.*;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +11,15 @@ import java.util.List;
 @Entity
 public class Post {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String userId;
     private String content;
     private String contentType; 
     private String category;
     @ElementCollection
+    @CollectionTable(name = "post_hashtag", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "hashtags")
     private List<String> hashtags;
     private LocalDateTime publishTime;
     private int likes;
@@ -26,8 +27,6 @@ public class Post {
     private int shares;
     private int reach;
     private double engagementRate;
-    private int minAge;
-    private int maxAge;
     
     public Post() {
         this.hashtags = new ArrayList<>();
@@ -44,40 +43,6 @@ public class Post {
         this.publishTime = LocalDateTime.now();
     }
 
-    
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-    
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
-    
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    
-    public List<String> getHashtags() { return hashtags; }
-    public void setHashtags(List<String> hashtags) { this.hashtags = hashtags; }
-    
-    public LocalDateTime getPublishTime() { return publishTime; }
-    public void setPublishTime(LocalDateTime publishTime) { this.publishTime = publishTime; }
-    
-    public int getLikes() { return likes; }
-    public void setLikes(int likes) { this.likes = likes; }
-    
-    public int getComments() { return comments; }
-    public void setComments(int comments) { this.comments = comments; }
-    
-    public int getShares() { return shares; }
-    public void setShares(int shares) { this.shares = shares; }
-    
-    public int getReach() { return reach; }
-    public void setReach(int reach) { this.reach = reach; }
-    
-    public double getEngagementRate() { return engagementRate; }
-    public void setEngagementRate(double engagementRate) { this.engagementRate = engagementRate; }
-    
     public void addHashtag(String hashtag) {
         this.hashtags.add(hashtag);
     }

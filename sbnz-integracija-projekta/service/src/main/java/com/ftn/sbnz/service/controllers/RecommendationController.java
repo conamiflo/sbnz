@@ -1,13 +1,14 @@
-package com.ftn.sbnz.service;
+package com.ftn.sbnz.service.controllers;
 
 
+import com.ftn.sbnz.model.dto.request.RecommendationRequest;
+import com.ftn.sbnz.model.dto.response.RecommendationResponse;
 import com.ftn.sbnz.model.models.*;
+import com.ftn.sbnz.service.services.SocialMediaRecommendationService;
+import com.ftn.sbnz.service.services.TemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.ftn.sbnz.model.dto.RecommendationRequest;
-import com.ftn.sbnz.model.dto.RecommendationResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -83,26 +84,6 @@ public class RecommendationController {
 
     private RecommendationRequest createDemoData() {
         RecommendationRequest request = new RecommendationRequest();
-        
-        User user1 = new User("user1", "Marko Petrović", 28, "Novi Sad", "M", "influencer", 5000);
-        user1.addInterest("fitness");
-        user1.addInterest("lifestyle");
-        
-        User user2 = new User("user2", "Ana Jovanović", 25, "Novi Sad", "F", "personal", 800);
-        user2.addInterest("food");
-        user2.addInterest("travel");
-        
-        User user3 = new User("user3", "Stefan Nikolić", 30, "Belgrade", "M", "brand", 15000);
-        user3.addInterest("fitness");
-        user3.addInterest("technology");
-        
-        User user4 = new User("user4", "Milica Stojanović", 27, "Novi Sad", "F", "influencer", 3200);
-        user4.addInterest("lifestyle");
-        user4.addInterest("food");
-        
-        request.setUsers(List.of(user1, user2, user3, user4));
-
-        
         return request;
     }
 
