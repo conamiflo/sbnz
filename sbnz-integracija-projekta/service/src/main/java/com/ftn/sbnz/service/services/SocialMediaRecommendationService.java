@@ -1,4 +1,4 @@
-package com.ftn.sbnz.service;
+package com.ftn.sbnz.service.services;
 
 import com.ftn.sbnz.model.events.EngagementEvent;
 import com.ftn.sbnz.model.events.HashtagUsageEvent;

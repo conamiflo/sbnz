@@ -1,4 +1,4 @@
-package com.ftn.sbnz.model.dto;
+package com.ftn.sbnz.model.dto.request;
 
 import java.util.List;
 
