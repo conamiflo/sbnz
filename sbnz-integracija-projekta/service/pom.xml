@@ -148,7 +148,11 @@
 			<artifactId>mapstruct</artifactId>
 			<version>1.6.0.Beta1</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-decisiontables</artifactId>
+			<version>7.74.0.Final</version> <!-- Replace with the desired version -->
+		</dependency>
 
 	</dependencies>
 

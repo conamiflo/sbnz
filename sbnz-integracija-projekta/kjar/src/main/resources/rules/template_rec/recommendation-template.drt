@@ -1,0 +1,66 @@
+template header
+contentType
+category
+minEngagement
+priorityScore
+hashtag
+optimalHour
+targetAudience
+reasoningText
+
+package com.ftn.sbnz.model.templates;
+
+import com.ftn.sbnz.model.models.Recommendation
+import java.time.LocalDateTime
+import java.time.DayOfWeek
+
+import com.ftn.sbnz.model.models.Post;
+import com.ftn.sbnz.model.models.User;
+import com.ftn.sbnz.model.models.Recommendation;
+import com.ftn.sbnz.model.models.TrendingHashtag;
+import java.time.LocalDateTime;
+import java.time.DayOfWeek;
+
+template "content-recommendation-@{row.rowNumber}"
+
+rule "Recommendation_@{contentType}_@{category}_@{row.rowNumber}"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "@{category}",
+        creatorType == "@{targetAudience}"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "@{contentType}",
+        category == "@{category}",
+        engagementRate >= @{minEngagement}
+    )
+    $trend: TrendingHashtag(tag == "@{hashtag}")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "@{contentType}", 
+        "@{category}",
+        $post.getContent()
+    );
+    rec.setPriorityScore(@{priorityScore});
+    rec.setReasoning("@{reasoningText}");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    // Set optimal publish time
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(@{optimalHour})
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "@{contentType} - @{category} for @{targetAudience}");
+end
+
+end template

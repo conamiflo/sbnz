@@ -1,15 +1,16 @@
 package com.ftn.sbnz.service.services;
 
+import com.ftn.sbnz.model.models.Recommendation;
+import org.drools.decisiontable.ExternalSpreadsheetCompiler;
 import org.kie.api.KieServices;
+import org.kie.api.builder.*;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-import com.ftn.sbnz.model.models.Recommendation;
-
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,63 +19,40 @@ public class TemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(TemplateService.class);
 
-    private final KieContainer kieContainer;
-
-    @Autowired
-    public TemplateService(KieContainer kieContainer) {
-        this.kieContainer = kieContainer;
-    }
-
-    public List<Recommendation> fireRecommendations(List<Recommendation> recommendations) {
-        KieSession kieSession = null;
+    public KieSession generateRulesFromTable() {
         try {
-            if (kieContainer != null) {
-                try {
-                    kieSession = kieContainer.newKieSession("templateKsession");
-                    log.info("Using templateKsession for template rules");
-                } catch (Exception e) {
-                    log.warn("templateKsession not found, using default session: " + e.getMessage());
-                    kieSession = kieContainer.newKieSession();
-                }
-            } else {
-                log.warn("No KieContainer injected, using classpath container");
-                KieServices kieServices = KieServices.Factory.get();
-                KieContainer fallbackContainer = kieServices.getKieClasspathContainer();
-                kieSession = fallbackContainer.newKieSession();
+            // 1. Load template and data from the KJAR resources
+            InputStream template = getClass().getResourceAsStream("/templates/recommendation-template.drt");
+            InputStream data = getClass().getResourceAsStream("/data/recommendation-rules.xlsx");
+
+            if (template == null || data == null) {
+                throw new RuntimeException("Template or Excel file not found in resources!");
             }
 
-            System.out.println("=== FIRING TEMPLATE RULES ===");
-            System.out.println("Recommendations to process: " + recommendations.size());
-            System.out.println();
+            // 2. Compile Excel + DRT → DRL
+            ExternalSpreadsheetCompiler converter = new ExternalSpreadsheetCompiler();
+            String drl = converter.compile(data, template, 2, 1);
 
-            for (Recommendation r : recommendations) {
-                kieSession.insert(r);
-                System.out.println("Inserted recommendation for user: " + r.getUserId()
-                        + " | Post: " + r.getPostId());
+            log.info("=== Generated DRL from Template ===\n" + drl);
+
+            // 3. Build Kie base from generated DRL
+            KieServices ks = KieServices.Factory.get();
+            KieFileSystem kfs = ks.newKieFileSystem();
+            kfs.write("src/main/resources/templates/template-generated.drl", drl);
+
+            KieBuilder kb = ks.newKieBuilder(kfs).buildAll();
+            if (kb.getResults().hasMessages(Message.Level.ERROR)) {
+                throw new RuntimeException("Drools build errors:\n" + kb.getResults());
             }
 
-            System.out.println();
-            int rulesTriggered = kieSession.fireAllRules();
-            System.out.println("Total template rules triggered: " + rulesTriggered);
-            System.out.println();
+            KieContainer kieContainer = ks.newKieContainer(ks.getRepository().getDefaultReleaseId());
+            KieSession kieSession = kieContainer.newKieSession();
 
-            List<Recommendation> processed = new ArrayList<>();
-            for (Object fact : kieSession.getObjects()) {
-                if (fact instanceof Recommendation) {
-                    processed.add((Recommendation) fact);
-                }
-            }
-
-            System.out.println("Template processing complete. Total processed: " + processed.size());
-            return processed;
+            return kieSession;
 
         } catch (Exception e) {
-            log.error("Error during template rule execution: " + e.getMessage(), e);
-            throw new RuntimeException("Failed to process recommendations with template rules: " + e.getMessage(), e);
-        } finally {
-            if (kieSession != null) {
-                kieSession.dispose();
-            }
+            log.error("Error running template rules: ", e);
+            throw new RuntimeException("Template rules failed: " + e.getMessage(), e);
         }
     }
 }

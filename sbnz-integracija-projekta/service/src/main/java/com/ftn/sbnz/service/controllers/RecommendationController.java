@@ -6,10 +6,13 @@ import com.ftn.sbnz.model.dto.response.RecommendationResponse;
 import com.ftn.sbnz.model.models.*;
 import com.ftn.sbnz.service.services.SocialMediaRecommendationService;
 import com.ftn.sbnz.service.services.TemplateService;
+import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,16 +29,16 @@ public class RecommendationController {
     private TemplateService templateService;
 
 
-    @PostMapping("/visualize")
-    public ResponseEntity<String> visualizeRecommendations(@RequestBody RecommendationRequest request) {
-        List<Recommendation> recommendations = recommendationService.generateRecommendations(
-            request.getUsers(), request.getPosts()
-        );
-
-        templateService.fireRecommendations(recommendations);
-
-        return ResponseEntity.ok("Recommendations visualized via Drools template!");
-    }
+//    @PostMapping("/visualize")
+//    public ResponseEntity<String> visualizeRecommendations(@RequestBody RecommendationRequest request) {
+//        List<Recommendation> recommendations = recommendationService.generateRecommendations(
+//            request.getUsers(), request.getPosts()
+//        );
+//
+//        templateService.fireRecommendations(recommendations);
+//
+//        return ResponseEntity.ok("Recommendations visualized via Drools template!");
+//    }
 
     @PostMapping("/generate")
     public ResponseEntity<RecommendationResponse> generateRecommendations(
@@ -110,6 +113,37 @@ public class RecommendationController {
             e.printStackTrace();
             return ResponseEntity.status(500).build();
         }
+    }
+
+
+    @PostMapping("/template-generate-from-excel")
+    public String generateFromExcel() {
+        KieSession session = templateService.generateRulesFromTable();
+
+        // Test data
+        User user = new User("ognjen", 22, "Novi Sad", "male", "nzm", 1000);
+        user.addInterest("fashion");
+        user.addInterest("fitness");
+
+        Post post1 = new Post(1L, "user2", "Fashion tips", "image", "fashion");
+        post1.setEngagementRate(0.07);
+
+        Post post2 = new Post(2L, "user3", "Workout routine", "video", "fitness");
+        post2.setEngagementRate(0.06);
+
+        TrendingHashtag trend1 = new TrendingHashtag("#style");
+        TrendingHashtag trend2 = new TrendingHashtag("#fitness");
+
+        session.insert(user);
+        session.insert(post1);
+        session.insert(post2);
+        session.insert(trend1);
+        session.insert(trend2);
+
+        int fired = session.fireAllRules();
+        session.dispose();
+
+        return "Rules generated from Excel. Fired " + fired + " rules.";
     }
 
 
