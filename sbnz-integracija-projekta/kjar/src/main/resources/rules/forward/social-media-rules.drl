@@ -1,35 +1,29 @@
-package forward
+package forward;
 
 import com.ftn.sbnz.model.models.Post;
 import com.ftn.sbnz.model.models.Recommendation;
 import com.ftn.sbnz.model.models.User;
-import java.time.LocalDateTime
-import java.time.DayOfWeek
+import java.time.LocalDateTime;
+import java.time.DayOfWeek;
 
 rule "Content Recommendation Based on Interests"
     when
-        $user: User($userId: id, $interests: interests)
-        $post: Post(userId != $userId, category memberOf $interests, 
-                    engagementRate > 0.03)
-        not Recommendation(userId == $userId, postId == $post.id)
+        $user: User($interests: interests)
+        $post: Post(user != $user, category memberOf $interests, engagementRate > 0.03)
+        not Recommendation(user == $user, post == $post)
     then
-        Recommendation rec = new Recommendation($userId, $post.getId(), 
-                                              $post.getContentType(), 
-                                              $post.getCategory(), 
-                                              $post.getContent());
+        Recommendation rec = new Recommendation($user, $post);
         rec.setPriorityScore(5.0);
         rec.setReasoning("Matches user interests: " + $post.getCategory());
         rec.setPredictedEngagement($post.getEngagementRate());
         insert(rec);
-        System.out.println("Created interest-based recommendation for user: " +
-                          $user.getName() + " -> " + $post.getCategory() + " content");
+        System.out.println("Created interest-based recommendation for user: " + $user.getName() + " -> " + $post.getCategory() + " content");
 end
 
 rule "Video Content Bonus for Influencers"
     when
-        $user: User($userId: id, creatorType == "influencer")
-        $rec: Recommendation(userId == $userId, contentType == "video", 
-                           priorityScore < 8.0)
+        $user: User(creatorType == "influencer")
+        $rec: Recommendation(user == $user, contentType == "video", priorityScore < 8.0)
     then
         $rec.increasePriorityScore(2.0, "Video content bonus for influencer");
         update($rec);
@@ -38,17 +32,15 @@ end
 
 rule "Optimal Publishing Time Recommendation"
     when
-        $user: User($userId: id, creatorType == "influencer", audienceSize > 1000)
-        $rec: Recommendation(userId == $userId, contentType == "video", 
-                           recommendedPublishTime == null)
+        $user: User(creatorType == "influencer", audienceSize > 1000)
+        $rec: Recommendation(user == $user, contentType == "video", recommendedPublishTime == null)
     then
         LocalDateTime optimalTime = LocalDateTime.now()
-                                                .with(DayOfWeek.TUESDAY)
-                                                .withHour(18)
-                                                .withMinute(0);
+                                                 .with(DayOfWeek.TUESDAY)
+                                                 .withHour(18)
+                                                 .withMinute(0);
         $rec.setRecommendedPublishTime(optimalTime);
         $rec.increasePriorityScore(1.5, "Optimal time for large audience");
         update($rec);
-        System.out.println("Optimal time set for " + $user.getName() +
-                          ": " + optimalTime.getDayOfWeek() + " at 18:00");
+        System.out.println("Optimal time set for " + $user.getName() + ": " + optimalTime.getDayOfWeek() + " at 18:00");
 end

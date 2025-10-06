@@ -1,17 +1,19 @@
 package com.ftn.sbnz.service.services;
 
+import com.ftn.sbnz.model.dto.response.RecommendationResponse;
 import com.ftn.sbnz.model.events.EngagementEvent;
 import com.ftn.sbnz.model.events.HashtagUsageEvent;
+import com.ftn.sbnz.model.events.PostPublishedEvent;
 import com.ftn.sbnz.model.models.*;
-import org.kie.api.KieServices;
+import com.ftn.sbnz.service.repositories.PostRepository;
+import com.ftn.sbnz.service.repositories.UserRepository;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.time.SessionPseudoClock;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -23,70 +25,73 @@ public class SocialMediaRecommendationService {
     private static final Logger log = LoggerFactory.getLogger(SocialMediaRecommendationService.class);
 
     private final KieContainer kieContainer;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
 
     @Autowired
-    public SocialMediaRecommendationService(KieContainer kieContainer) {
+    public SocialMediaRecommendationService(KieContainer kieContainer, UserRepository userRepository, PostRepository postRepository) {
         this.kieContainer = kieContainer;
+        this.userRepository = userRepository;
+        this.postRepository = postRepository;
     }
 
-    public List<Recommendation> generateRecommendations(List<User> users, List<Post> posts) {
+    public RecommendationResponse generateAndPackageRecommendations() {
+        List<Recommendation> recommendations = this.generateRecommendationsInternal();
+
+        RecommendationResponse response = new RecommendationResponse();
+        response.setSuccess(true);
+        response.setRecommendations(recommendations);
+        response.setTotalCount(recommendations.size());
+        response.setMessage("Successfully generated " + recommendations.size() + " recommendations");
+
+        // KLJUČNA IZMENA: Ovaj kod je sada usklađen sa novom Recommendation klasom
+        // jer koristi r.getUser().getId() umesto nepostojećeg r.getUserId()
+        Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
+                .collect(Collectors.groupingBy(r -> {
+                    if (r.getUser() != null && r.getUser().getId() != null) {
+                        return r.getUser().getId().toString();
+                    }
+                    return "unknown";
+                }));
+        response.setRecommendationsByUser(recommendationsByUser);
+
+        double avgScore = recommendations.stream()
+                .mapToDouble(Recommendation::getPriorityScore)
+                .average().orElse(0.0);
+        response.setAveragePriorityScore(avgScore);
+
+        long highPriorityCount = recommendations.stream()
+                .filter(r -> r.getPriorityScore() > 6.0)
+                .count();
+        response.setHighPriorityCount(highPriorityCount);
+
+        return response;
+    }
+
+    private List<Recommendation> generateRecommendationsInternal() {
         KieSession kieSession = null;
-
         try {
+            kieSession = kieContainer.newKieSession("fwKsession");
 
-            if (kieContainer != null) {
-                try {
-                    kieSession = kieContainer.newKieSession("fwKsession");
-                    log.info("Using fwKsession for forward package rules");
-                } catch (Exception e) {
-                    log.warn("fwKsession not found, trying default session: " + e.getMessage());
-                    kieSession = kieContainer.newKieSession();
-                }
-            } else {
-                log.warn("No KieContainer injected, using classpath container");
-                KieServices kieServices = KieServices.Factory.get();
-                KieContainer fallbackContainer = kieServices.getKieClasspathContainer();
-                kieSession = fallbackContainer.newKieSession();
-            }
-
-            System.out.println("=== SOCIAL MEDIA RECOMMENDATION SYSTEM ===");
-            System.out.println("Users: " + users.size() + ", Posts: " + posts.size());
-            System.out.println();
+            List<User> users = userRepository.findAll();
+            List<Post> posts = postRepository.findAll();
 
             for (User user : users) {
                 kieSession.insert(user);
-                System.out.println("Inserted user: " + user.getName() + " (" + user.getCreatorType() + ")");
             }
-
             for (Post post : posts) {
                 kieSession.insert(post);
-                System.out.println("Inserted post: " + post.getId() + " - " + post.getCategory());
             }
 
-            System.out.println();
-            System.out.println("=== FIRING RULES ===");
-
-            int rulesTriggered = kieSession.fireAllRules();
-            System.out.println();
-            System.out.println("Total rules triggered: " + rulesTriggered);
-            System.out.println();
+            kieSession.fireAllRules();
 
             List<Recommendation> recommendations = new ArrayList<>();
-            for (Object fact : kieSession.getObjects()) {
-                if (fact instanceof Recommendation) {
-                    recommendations.add((Recommendation) fact);
-                }
+            for (Object fact : kieSession.getObjects(o -> o instanceof Recommendation)) {
+                recommendations.add((Recommendation) fact);
             }
 
-            System.out.println("Found " + recommendations.size() + " recommendations in working memory");
-
-            recommendations.sort((r1, r2) -> Double.compare(r2.getPriorityScore(), r1.getPriorityScore()));
-
+            recommendations.sort(Comparator.comparing(Recommendation::getPriorityScore).reversed());
             return recommendations;
-
-        } catch (Exception e) {
-            log.error("Error during rule execution: " + e.getMessage(), e);
-            throw new RuntimeException("Failed to generate recommendations: " + e.getMessage(), e);
 
         } finally {
             if (kieSession != null) {
@@ -94,122 +99,92 @@ public class SocialMediaRecommendationService {
             }
         }
     }
+    /**
+     * Demonstrira ulančano CEP pravilo.
+     * Prvo pravilo detektuje trend, a drugo proverava njegovu relevantnost za datog korisnika.
+     */
+    public List<RelevantTrendAlert> detectAndAnalyzeRelevantTrends(User user) {
+        KieSession kieSession = kieContainer.newKieSession("cepKsession");
+        try {
+            SessionPseudoClock clock = kieSession.getSessionClock();
+            List<RelevantTrendAlert> relevantTrendAlerts = new ArrayList<>();
 
-    public void displayRecommendations(List<Recommendation> recommendations, List<User> users) {
-        System.out.println("=== GENERATED RECOMMENDATIONS ===");
+            kieSession.insert(user);
 
-        if (recommendations.isEmpty()) {
-            System.out.println("No recommendations generated.");
-            return;
+            // Simulacija istorijske upotrebe heštega (baseline)
+            for (int i = 0; i < 14; i++) {
+                kieSession.insert(new HashtagUsageEvent("#fitness"));
+                clock.advanceTime(12, TimeUnit.HOURS);
+            }
+
+            // Simulacija naglog skoka popularnosti
+            log.info("Simulating hashtag spike for #fitness...");
+            for (int i = 0; i < 40; i++) {
+                kieSession.insert(new HashtagUsageEvent("#fitness"));
+                clock.advanceTime(9, TimeUnit.MINUTES);
+            }
+
+            kieSession.fireAllRules();
+
+            for (Object fact : kieSession.getObjects(o -> o instanceof RelevantTrendAlert)) {
+                relevantTrendAlerts.add((RelevantTrendAlert) fact);
+            }
+            return relevantTrendAlerts;
+        } finally {
+            if (kieSession != null) {
+                kieSession.dispose();
+            }
         }
+    }
 
-        Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
-                .collect(Collectors.groupingBy(Recommendation::getUserId));
+    /**
+     * Demonstrira kompleksno CEP pravilo za detekciju zasićenja publike.
+     * Simulira scenario gde korisnik prečesto objavljuje, što dovodi do pada engagementa i deljenja.
+     */
+    public Optional<AudienceSaturationAlert> detectAudienceSaturation() {
+        KieSession kieSession = kieContainer.newKieSession("cepKsession");
+        try {
+            SessionPseudoClock clock = kieSession.getSessionClock();
+            String saturatedCategory = "vežbe";
 
-        for (Map.Entry<String, List<Recommendation>> entry : recommendationsByUser.entrySet()) {
-            String userId = entry.getKey();
-            List<Recommendation> userRecommendations = entry.getValue();
+            // Priprema: Postavljanje istorijskog proseka za "share"
+            for (int i = 0; i < 5; i++) {
+                long postId = 100L + i;
+                kieSession.insert(new PostPublishedEvent(postId, saturatedCategory));
+                kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.SHARE));
+                kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.SHARE));
+                clock.advanceTime(5, TimeUnit.DAYS);
+            }
 
-            User user = users.stream()
-                    .filter(u -> u.getId().equals(userId))
-                    .findFirst()
-                    .orElse(null);
+            log.info("Simulating audience saturation scenario for category '{}'...", saturatedCategory);
+            // Simulacija scenarija zasićenja
+            for (int i = 0; i < 11; i++) {
+                long postId = (long) i;
+                kieSession.insert(new PostPublishedEvent(postId, saturatedCategory));
 
-            System.out.println();
-            System.out.println("📱 RECOMMENDATIONS FOR: " +
-                    (user != null ? user.getName() : "User " + userId));
-            System.out.println("   Interests: " + (user != null ? user.getInterests() : "N/A"));
-            System.out.println("   Type: " + (user != null ? user.getCreatorType() : "N/A"));
-            System.out.println("   Location: " + (user != null ? user.getLocation() : "N/A"));
-            System.out.println();
-
-            for (int i = 0; i < Math.min(userRecommendations.size(), 5); i++) {
-                Recommendation rec = userRecommendations.get(i);
-                System.out.printf("   %d. [Score: %.2f] %s - %s%n",
-                        i + 1, rec.getPriorityScore(), rec.getContentType().toUpperCase(),
-                        rec.getCategory());
-                System.out.println("      Content: " + rec.getContent());
-                System.out.println("      Engagement: " + String.format("%.3f", rec.getPredictedEngagement()));
-                if (rec.getRecommendedPublishTime() != null) {
-                    System.out.println("      Best time: " + rec.getRecommendedPublishTime().getDayOfWeek() +
-                            " at " + rec.getRecommendedPublishTime().getHour() + ":00");
+                if (i < 5) { // Stariji period
+                    for (int j = 0; j < 10; j++) kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.LIKE));
+                } else { // Noviji period
+                    for (int j = 0; j < 3; j++) kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.LIKE));
                 }
-                System.out.println("      Reasoning: " + rec.getReasoning());
-                System.out.println();
+
+                if (i == 3 || i == 8) {
+                    kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.SHARE));
+                }
+
+                clock.advanceTime(1, TimeUnit.DAYS);
+            }
+
+            kieSession.fireAllRules();
+
+            return kieSession.getObjects(o -> o instanceof AudienceSaturationAlert)
+                    .stream()
+                    .map(o -> (AudienceSaturationAlert) o)
+                    .findFirst();
+        } finally {
+            if (kieSession != null) {
+                kieSession.dispose();
             }
         }
-
-        System.out.println("=== SUMMARY ===");
-        System.out.println("Total recommendations generated: " + recommendations.size());
-        System.out.println("Average priority score: " +
-                String.format("%.2f", recommendations.stream()
-                        .mapToDouble(Recommendation::getPriorityScore)
-                        .average().orElse(0.0)));
-        System.out.println("High priority recommendations (>6.0): " +
-                recommendations.stream()
-                        .mapToLong(r -> r.getPriorityScore() > 6.0 ? 1 : 0)
-                        .sum());
     }
-
-    public List<TrendingHashtag> detectTrendingHashtags() {
-        KieSession kieSession = kieContainer.newKieSession("cepKsession");
-        SessionPseudoClock clock = kieSession.getSessionClock();
-        List<TrendingHashtag> trendingList = new ArrayList<>();
-
-
-        for (int i = 0; i < 14; i++) {
-            kieSession.insert(new HashtagUsageEvent("#fitness"));
-            clock.advanceTime(12, TimeUnit.HOURS);
-        }
-
-        for (int i = 0; i < 40; i++) {
-            kieSession.insert(new HashtagUsageEvent("#fitness"));
-            clock.advanceTime(9, TimeUnit.MINUTES);
-        }
-
-        kieSession.fireAllRules();
-
-        for (Object fact : kieSession.getObjects()) {
-            if (fact instanceof TrendingHashtag) {
-                trendingList.add((TrendingHashtag) fact);
-            }
-        }
-
-        kieSession.dispose();
-        return trendingList;
-    }
-
-
-    public EngagementDropAlert detectEngagementDrop() {
-        KieSession kieSession = kieContainer.newKieSession("cepKsession");
-        SessionPseudoClock clock = kieSession.getSessionClock();
-
-
-        for (int i = 0; i < 50; i++) {
-            double goodEngagement = 0.04 + (Math.random() * 0.02);
-            kieSession.insert(new EngagementEvent(goodEngagement));
-            clock.advanceTime(1, TimeUnit.HOURS);
-        }
-
-
-        for (int i = 0; i < 10; i++) {
-            double badEngagement = 0.01 + (Math.random() * 0.02);
-            kieSession.insert(new EngagementEvent(badEngagement));
-            clock.advanceTime(1, TimeUnit.HOURS);
-        }
-
-        kieSession.fireAllRules();
-
-        EngagementDropAlert alert = null;
-        for (Object fact : kieSession.getObjects()) {
-            if (fact instanceof EngagementDropAlert) {
-                alert = (EngagementDropAlert) fact;
-                break;
-            }
-        }
-
-        kieSession.dispose();
-        return alert;
-    }
-
 }

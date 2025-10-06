@@ -1,11 +1,13 @@
 package com.ftn.sbnz.model.models;
 
+import lombok.Data;
 import java.time.LocalDateTime;
 
+@Data
 public class Recommendation {
-    private String id;
-    private String userId;
-    private String postId;
+
+    private User user;
+    private Post post;
     private String contentType;
     private String category;
     private String content;
@@ -13,61 +15,25 @@ public class Recommendation {
     private String reasoning;
     private LocalDateTime recommendedPublishTime;
     private double predictedEngagement;
-    private String status; 
-    
+    private String status;
+
+    // Podrazumevani konstruktor
     public Recommendation() {
-        this.status = "pending";
-    }
-    
-    public Recommendation(String userId, String postId, String contentType, String category, String content) {
-        this.userId = userId;
-        this.postId = postId;
-        this.contentType = contentType;
-        this.category = category;
-        this.content = content;
         this.status = "pending";
         this.priorityScore = 0.0;
         this.predictedEngagement = 0.0;
     }
-    
-    // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-    
-    public String getPostId() { return postId; }
-    public void setPostId(String postId) { this.postId = postId; }
-    
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
-    
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    
-    public double getPriorityScore() { return priorityScore; }
-    public void setPriorityScore(double priorityScore) { this.priorityScore = priorityScore; }
-    
-    public String getReasoning() { return reasoning; }
-    public void setReasoning(String reasoning) { this.reasoning = reasoning; }
-    
-    public LocalDateTime getRecommendedPublishTime() { return recommendedPublishTime; }
-    public void setRecommendedPublishTime(LocalDateTime recommendedPublishTime) { 
-        this.recommendedPublishTime = recommendedPublishTime; 
+
+
+    public Recommendation(User user, Post post) {
+        this();
+        this.user = user;
+        this.post = post;
+        this.contentType = post.getContentType();
+        this.category = post.getCategory();
+        this.content = post.getContent();
     }
-    
-    public double getPredictedEngagement() { return predictedEngagement; }
-    public void setPredictedEngagement(double predictedEngagement) { 
-        this.predictedEngagement = predictedEngagement; 
-    }
-    
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    
+
     public void increasePriorityScore(double increase, String reason) {
         this.priorityScore += increase;
         if (this.reasoning == null || this.reasoning.isEmpty()) {
@@ -75,19 +41,5 @@ public class Recommendation {
         } else {
             this.reasoning += "; " + reason;
         }
-    }
-    
-    @Override
-    public String toString() {
-        return "Recommendation{" +
-                "userId='" + userId + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", category='" + category + '\'' +
-                ", content='" + content + '\'' +
-                ", priorityScore=" + String.format("%.2f", priorityScore) +
-                ", predictedEngagement=" + String.format("%.3f", predictedEngagement) +
-                ", recommendedTime=" + (recommendedPublishTime != null ? recommendedPublishTime.toString() : "N/A") +
-                ", reasoning='" + reasoning + '\'' +
-                '}';
     }
 }

@@ -14,20 +14,13 @@ import org.kie.api.definition.type.Timestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EngagementEvent implements Serializable {
+public class PostPublishedEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    public EngagementEvent(long postId, String saturatedCategory, EngagementType engagementType) {
-    }
-
-    public enum EngagementType {
-        LIKE, COMMENT, SHARE
-    }
-
     private Date timestamp;
     private Long postId;
-    private String postCategory;
-    private EngagementType type;
+    private String category;
 
+    public PostPublishedEvent(long postId, String saturatedCategory) {
+    }
 }
