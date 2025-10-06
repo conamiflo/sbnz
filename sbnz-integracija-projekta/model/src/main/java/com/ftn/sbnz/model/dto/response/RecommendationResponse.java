@@ -10,7 +10,7 @@ public class RecommendationResponse {
     private boolean success;
     private String message;
     private List<Recommendation> recommendations;
-    private Map<String, List<Recommendation>> recommendationsByUser;
+    private Map<Long, List<Recommendation>> recommendationsByUser;
     private int totalCount;
     private double averagePriorityScore;
     private long highPriorityCount;
@@ -42,11 +42,11 @@ public class RecommendationResponse {
         this.recommendations = recommendations;
     }
     
-    public Map<String, List<Recommendation>> getRecommendationsByUser() {
+    public Map<Long, List<Recommendation>> getRecommendationsByUser() {
         return recommendationsByUser;
     }
     
-    public void setRecommendationsByUser(Map<String, List<Recommendation>> recommendationsByUser) {
+    public void setRecommendationsByUser(Map<Long, List<Recommendation>> recommendationsByUser) {
         this.recommendationsByUser = recommendationsByUser;
     }
     

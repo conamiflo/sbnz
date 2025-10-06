@@ -1,0 +1,240 @@
+package com.ftn.sbnz.model.templates;
+import com.ftn.sbnz.model.models.Recommendation
+import java.time.LocalDateTime
+import java.time.DayOfWeek
+import com.ftn.sbnz.model.models.Post;
+import com.ftn.sbnz.model.models.User;
+import com.ftn.sbnz.model.models.Recommendation;
+import com.ftn.sbnz.model.models.TrendingHashtag;
+import java.time.LocalDateTime;
+import java.time.DayOfWeek;
+
+rule "Recommendation_video_fitness_1"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "fitness",
+        creatorType == "influencer"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "video",
+        category == "fitness",
+        engagementRate >= 0.05
+    )
+    $trend: TrendingHashtag(tag == "#fitness")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "video", 
+        "fitness",
+        $post.getContent()
+    );
+    rec.setPriorityScore(8.5);
+    rec.setReasoning("High-engagement fitness video content");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(18)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "video - fitness for influencer");
+end
+
+rule "Recommendation_video_tech_2"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "tech",
+        creatorType == "influencer"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "video",
+        category == "tech",
+        engagementRate >= 0.04
+    )
+    $trend: TrendingHashtag(tag == "#technology")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "video", 
+        "tech",
+        $post.getContent()
+    );
+    rec.setPriorityScore(8);
+    rec.setReasoning("Trending tech video for tech audience");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(20)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "video - tech for influencer");
+end
+
+rule "Recommendation_article_tech_3"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "tech",
+        creatorType == "creator"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "article",
+        category == "tech",
+        engagementRate >= 0.03
+    )
+    $trend: TrendingHashtag(tag == "#coding")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "article", 
+        "tech",
+        $post.getContent()
+    );
+    rec.setPriorityScore(6.5);
+    rec.setReasoning("Technical article for developers");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(14)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "article - tech for creator");
+end
+
+rule "Recommendation_image_fashion_4"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "fashion",
+        creatorType == "influencer"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "image",
+        category == "fashion",
+        engagementRate >= 0.06
+    )
+    $trend: TrendingHashtag(tag == "#style")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "image", 
+        "fashion",
+        $post.getContent()
+    );
+    rec.setPriorityScore(7.5);
+    rec.setReasoning("Viral fashion image content");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(19)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "image - fashion for influencer");
+end
+
+rule "Recommendation_video_cooking_5"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "cooking",
+        creatorType == "creator"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "video",
+        category == "cooking",
+        engagementRate >= 0.045
+    )
+    $trend: TrendingHashtag(tag == "#recipe")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "video", 
+        "cooking",
+        $post.getContent()
+    );
+    rec.setPriorityScore(7);
+    rec.setReasoning("Popular cooking tutorial");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(17)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "video - cooking for creator");
+end
+
+rule "Recommendation_article_fitness_6"
+salience 100
+when
+    $user: User(
+        $userId: id,
+        interests contains "fitness",
+        creatorType == "creator"
+    )
+    $post: Post(
+        userId != $userId,
+        contentType == "article",
+        category == "fitness",
+        engagementRate >= 0.035
+    )
+    $trend: TrendingHashtag(tag == "#health")
+    not Recommendation(userId == $userId, postId == $post.id)
+then
+    Recommendation rec = new Recommendation(
+        $userId, 
+        $post.getId(),
+        "article", 
+        "fitness",
+        $post.getContent()
+    );
+    rec.setPriorityScore(6);
+    rec.setReasoning("Health tips");
+    rec.setPredictedEngagement($post.getEngagementRate());
+    
+    LocalDateTime optimalTime = LocalDateTime.now()
+                                             .with(DayOfWeek.TUESDAY)
+                                             .withHour(10)
+                                             .withMinute(0);
+    rec.setRecommendedPublishTime(optimalTime);
+    insert(rec);
+    System.out.println("[TEMPLATE RULE] Generated recommendation: " + 
+                      "article - fitness for creator");
+end
+
+

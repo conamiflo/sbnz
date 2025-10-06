@@ -103,11 +103,11 @@ public class SocialMediaRecommendationService {
             return;
         }
 
-        Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
+        Map<Long, List<Recommendation>> recommendationsByUser = recommendations.stream()
                 .collect(Collectors.groupingBy(Recommendation::getUserId));
 
-        for (Map.Entry<String, List<Recommendation>> entry : recommendationsByUser.entrySet()) {
-            String userId = entry.getKey();
+        for (Map.Entry<Long, List<Recommendation>> entry : recommendationsByUser.entrySet()) {
+            Long userId = entry.getKey();
             List<Recommendation> userRecommendations = entry.getValue();
 
             User user = users.stream()

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class Recommendation {
     private String id;
-    private String userId;
+    private Long userId;
     private Long postId;
     private String contentType;
     private String category;
@@ -19,7 +19,7 @@ public class Recommendation {
         this.status = "pending";
     }
     
-    public Recommendation(String userId, Long postId, String contentType, String category, String content) {
+    public Recommendation(Long userId, Long postId, String contentType, String category, String content) {
         this.userId = userId;
         this.postId = postId;
         this.contentType = contentType;
@@ -29,13 +29,13 @@ public class Recommendation {
         this.priorityScore = 0.0;
         this.predictedEngagement = 0.0;
     }
-    
+
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
@@ -76,6 +76,8 @@ public class Recommendation {
             this.reasoning += "; " + reason;
         }
     }
+
+
     
     @Override
     public String toString() {

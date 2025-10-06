@@ -1,6 +1,5 @@
 package com.ftn.sbnz.service.services;
 
-import com.ftn.sbnz.model.models.Recommendation;
 import org.drools.decisiontable.ExternalSpreadsheetCompiler;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
@@ -11,8 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 public class TemplateService {
@@ -22,8 +22,8 @@ public class TemplateService {
     public KieSession generateRulesFromTable() {
         try {
             // 1. Load template and data from the KJAR resources
-            InputStream template = getClass().getResourceAsStream("/templates/recommendation-template.drt");
-            InputStream data = getClass().getResourceAsStream("/data/recommendation-rules.xlsx");
+            InputStream template = getClass().getResourceAsStream("/rules/template_rec/recommendation-template.drt");
+            InputStream data = getClass().getResourceAsStream("/rules/template_rec/recommendation-rules.xlsx");
 
             if (template == null || data == null) {
                 throw new RuntimeException("Template or Excel file not found in resources!");
@@ -35,10 +35,15 @@ public class TemplateService {
 
             log.info("=== Generated DRL from Template ===\n" + drl);
 
+            Path drlFilePath = Paths.get("kjar/src/main/resources/rules/template_rec/template-generated.drl");
+            Files.createDirectories(drlFilePath.getParent());
+            Files.writeString(drlFilePath, drl);
+            log.info("=== DRL written to: " + drlFilePath.toAbsolutePath() + " ===");
+
             // 3. Build Kie base from generated DRL
             KieServices ks = KieServices.Factory.get();
             KieFileSystem kfs = ks.newKieFileSystem();
-            kfs.write("src/main/resources/templates/template-generated.drl", drl);
+            kfs.write("src/main/resources/rules/template_rec/template-generated.drl", drl);
 
             KieBuilder kb = ks.newKieBuilder(kfs).buildAll();
             if (kb.getResults().hasMessages(Message.Level.ERROR)) {

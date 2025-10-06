@@ -53,7 +53,7 @@ public class RecommendationController {
             response.setSuccess(true);
             response.setMessage("Successfully generated " + recommendations.size() + " recommendations");
             
-            Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
+            Map<Long, List<Recommendation>> recommendationsByUser = recommendations.stream()
                     .collect(Collectors.groupingBy(Recommendation::getUserId));
             response.setRecommendationsByUser(recommendationsByUser);
             
