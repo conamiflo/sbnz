@@ -9,11 +9,15 @@ import java.util.List;
 
 @Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
     private String content;
     private String contentType; 
     private String category;
@@ -28,20 +32,6 @@ public class Post {
     private int reach;
     private double engagementRate;
     
-    public Post() {
-        this.hashtags = new ArrayList<>();
-        this.publishTime = LocalDateTime.now();
-    }
-    
-    public Post(Long id, String userId, String content, String contentType, String category) {
-        this.id = id;
-        this.userId = userId;
-        this.content = content;
-        this.contentType = contentType;
-        this.category = category;
-        this.hashtags = new ArrayList<>();
-        this.publishTime = LocalDateTime.now();
-    }
 
     public void addHashtag(String hashtag) {
         this.hashtags.add(hashtag);
@@ -65,11 +55,4 @@ public class Post {
                 '}';
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
 }

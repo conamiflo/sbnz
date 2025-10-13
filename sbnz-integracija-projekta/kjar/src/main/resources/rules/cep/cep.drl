@@ -5,8 +5,16 @@ import com.ftn.sbnz.model.events.HashtagUsageEvent;
 import com.ftn.sbnz.model.models.TrendingHashtag;
 import com.ftn.sbnz.model.events.EngagementEvent;
 import com.ftn.sbnz.model.models.EngagementDropAlert;
+import com.ftn.sbnz.model.events.PostPublishedEvent;
+import com.ftn.sbnz.model.models.AudienceSaturationAlert;
+import com.ftn.sbnz.model.events.EngagementEvent.EngagementType;
+import com.ftn.sbnz.model.models.RelevantTrendAlert;
+import com.ftn.sbnz.model.models.User;
+import com.ftn.sbnz.model.models.Post;
 
-// Deklaracije dogadjaja
+// --- Deklaracije Događaja ---
+// Svaka klasa koja se koristi kao događaj u CEP-u mora biti deklarisana.
+
 declare HashtagUsageEvent
     @role(event)
 end
@@ -15,8 +23,18 @@ declare EngagementEvent
     @role(event)
 end
 
+// DODATA DEKLARACIJA: Ovo je nedostajalo, a neophodno je za pravilo o zasićenju.
+declare PostPublishedEvent
+    @role(event)
+end
+
+
+// --- Pravila Prvog Sloja (Brzi Detektori Signala) ---
+
 rule "Detect Trending Hashtag Spike"
+    salience 10 // Dajemo prioritet ovom pravilu da se izvrši prvo
     when
+        // Detektuje statistički skok u korišćenju heštega
         $event: HashtagUsageEvent($tag: hashtag)
         not TrendingHashtag(tag == $tag)
         $baselineCount: Number(doubleValue > 0) from accumulate(
@@ -29,26 +47,136 @@ rule "Detect Trending Hashtag Spike"
         )
         eval($recentCount.doubleValue() > (5 * ($baselineCount.doubleValue() / 7)))
     then
-        System.out.println("CEP RULE TRIGGERED: Hashtag #" + $tag + " is trending!");
-        System.out.println("   -> Recent usage (6h): " + $recentCount + ", Daily avg (7d): " + String.format("%.2f", $baselineCount.doubleValue() / 7));
+        System.out.println("CEP RULE (Layer 1) TRIGGERED: Hashtag #" + $tag + " is trending!");
+        // Akcija je da se ubaci novi, apstraktni događaj za drugi sloj pravila
         insert(new TrendingHashtag($tag));
 end
 
-rule "Detect Engagement Drop"
+
+// --- Pravila Drugog Sloja (Strateška Analiza) ---
+
+rule "Analyze Relevance of a Trending Hashtag"
     when
-        $baseAvg: Double(doubleValue > 0) from accumulate(
-            $event1: EngagementEvent() over window:time(7d),
-            average($event1.getEngagementRate())
-        )
-        $recentAvg: Double() from accumulate(
-            $event2: EngagementEvent() over window:time(12h),
-            average($event2.getEngagementRate())
-        )
-        eval($baseAvg != null && $recentAvg != null && $recentAvg < (0.6 * $baseAvg))
-        not EngagementDropAlert()
+        // OKIDAČ: Reaguje samo na događaj koji je proizvelo pravilo "Detect Trending Hashtag Spike"
+        $trending: TrendingHashtag($tag: tag)
+        // DOHVATANJE KONTEKSTA: Pronalazi korisnika i njegove podatke
+        $user: User($interests: interests)
+        // ANALIZA: Proverava da li je trend relevantan za interese korisnika
+        eval($interests.contains($tag))
+        // Osigurava da se alert ne kreira više puta
+        not RelevantTrendAlert(hashtag == $tag)
     then
-        String msg = "Engagement drop detected. Recent avg: " + String.format("%.3f", $recentAvg) +
-                     " vs. baseline: " + String.format("%.3f", $baseAvg);
-        System.out.println("CEP RULE TRIGGERED: " + msg);
-        insert(new EngagementDropAlert(msg, $recentAvg, $baseAvg));
+        String reason = "poklapa se sa interesovanjem korisnika: " + $tag;
+        String msg = "RELEVANTAN TREND DETEKTOVAN: Hešteg #" + $tag + " je popularan I relevantan za vas!";
+        System.out.println("CHAINED CEP RULE (Layer 2) TRIGGERED: " + msg);
+        insert(new RelevantTrendAlert(msg, $tag, reason));
 end
+
+
+rule "Detect Audience Saturation through Drop in Shares"
+    when
+        // Definišemo trenutno vreme kao referentnu tačku
+        $now: Long() from System.currentTimeMillis()
+
+        // Uslov 1: Pronađi kategoriju koja je objavljivana prečesto u poslednjih 14 dana
+        $category: String()
+        $frequency: Number(intValue > 10) from accumulate(
+            PostPublishedEvent(
+                category == $category,
+                // Proveravamo da li je vreme događaja unutar poslednjih 14 dana
+                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000)
+            ),
+            count(1)
+        )
+
+        // Uslov 2: Proveri da li je opšti engagement (lajkovi+komentari) u opadajućem trendu
+        $olderEngagementCount: Number() from accumulate(
+            EngagementEvent(
+                postCategory == $category,
+                type != EngagementType.SHARE,
+                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000), // Period od pre 14 dana
+                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)  // do pre 7 dana
+            ),
+            count(1)
+        )
+        $olderPostCount: Number(intValue > 0) from accumulate(
+             PostPublishedEvent(
+                category == $category,
+                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000),
+                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)
+            ),
+            count(1)
+        )
+        $recentEngagementCount: Number() from accumulate(
+            EngagementEvent(
+                postCategory == $category,
+                type != EngagementType.SHARE,
+                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000) // Period u poslednjih 7 dana
+            ),
+            count(1)
+        )
+        $recentPostCount: Number(intValue > 0) from accumulate(
+            PostPublishedEvent(
+                category == $category,
+                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000)
+            ),
+            count(1)
+        )
+        // Uslov da je engagement opao za više od 20%
+        eval($recentEngagementCount.doubleValue() / $recentPostCount.doubleValue() < 0.8 * ($olderEngagementCount.doubleValue() / $olderPostCount.doubleValue()))
+
+        // Uslov 3: Proveri da li je broj deljenja (shares) značajno opao
+        $baselineShareCount: Number() from accumulate(
+            EngagementEvent(
+                postCategory == $category,
+                type == EngagementType.SHARE,
+                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000) // Prosek u poslednjih 60 dana
+            ),
+            count(1)
+        )
+        $baselinePostCount: Number(intValue > 0) from accumulate(
+            PostPublishedEvent(
+                category == $category,
+                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000)
+            ),
+            count(1)
+        )
+        $recentShareCount: Number() from accumulate(
+            EngagementEvent(
+                postCategory == $category,
+                type == EngagementType.SHARE,
+                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000) // Broj u poslednjih 14 dana
+            ),
+            count(1)
+        )
+        // Uslov da je broj deljenja pao za više od 50%
+        eval($recentShareCount.doubleValue() / $frequency.doubleValue() < 0.5 * ($baselineShareCount.doubleValue() / $baselinePostCount.doubleValue()))
+
+        // Osiguravamo da se alert ne kreira više puta za istu stvar
+        not (AudienceSaturationAlert(saturatedCategory == $category))
+    then
+        String msg = "UPOZORENJE: Zasićenje publike temom '" + $category +
+                     "'. Prevelika učestalost objava dovela je do pada engagementa i drastičnog pada broja deljenja. " +
+                     "PREPORUKA: Smanjite učestalost i uvedite novu, srodnu kategoriju.";
+        System.out.println("COMPLEX CEP RULE TRIGGERED: " + msg);
+        insert(new AudienceSaturationAlert(msg, $category));
+end
+
+//rule "Detect Engagement Drop"
+//    when
+//        $baseAvg: Double(doubleValue > 0) from accumulate(
+//            $event1: EngagementEvent() over window:time(7d),
+//            average($event1.getEngagementRate())
+//        )
+//        $recentAvg: Double() from accumulate(
+//            $event2: EngagementEvent() over window:time(12h),
+//            average($event2.getEngagementRate())
+//        )
+//        eval($baseAvg != null && $recentAvg != null && $recentAvg < (0.6 * $baseAvg))
+//        not EngagementDropAlert()
+//    then
+//        String msg = "Engagement drop detected. Recent avg: " + String.format("%.3f", $recentAvg) +
+//                     " vs. baseline: " + String.format("%.3f", $baseAvg);
+//        System.out.println("CEP RULE TRIGGERED: " + msg);
+//        insert(new EngagementDropAlert(msg, $recentAvg, $baseAvg));
+//end

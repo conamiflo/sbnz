@@ -12,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -22,7 +23,7 @@ public class User {
     private int age;
     private String location;
     private String gender;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
     private List<String> interests;
@@ -30,24 +31,8 @@ public class User {
     private int audienceSize;
     private String username;
     private String password;
-
-    public User() {
-        this.interests = new ArrayList<>();
-    }
-
-    public User(String name, int age, String location, String gender, String creatorType, int audienceSize) {
-        this.name = name;
-        this.age = age;
-        this.location = location;
-        this.gender = gender;
-        this.creatorType = creatorType;
-        this.audienceSize = audienceSize;
-        this.interests = new ArrayList<>();
-    }
-
-    public void addInterest(String interest) {
-        this.interests.add(interest);
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts;
 
     @Override
     public String toString() {
