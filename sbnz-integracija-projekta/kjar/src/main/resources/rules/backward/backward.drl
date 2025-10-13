@@ -1,1 +1,89 @@
-package backward;
+package backward
+
+import com.ftn.sbnz.model.models.User
+import com.ftn.sbnz.model.models.Post
+import com.ftn.sbnz.model.models.Recommendation
+
+// Jednostavna rekurzivna query: Da li post odgovara korisniku?
+query "isRelevantFor"(Post post, User user)
+    (
+        post: Post($category: category)
+        and
+        user: User($interests: interests)
+        and
+        eval($interests contains $category)
+    )
+    or
+    (
+        $similarPost: Post(
+            category == post.category,
+            contentType == post.contentType,
+            id != post.id
+        )
+        and
+        isRelevantFor($similarPost, user;)
+    )
+end
+
+// Pravilo koje koristi backward chaining query
+rule "Find Relevant Content"
+    when
+        $user: User($userId: id)
+        $post: Post(userId != $userId)
+        // Pozovi backward query
+        ?isRelevantFor($post, $user;)
+        not Recommendation(userId == $userId, postId == $post.id)
+    then
+        Recommendation rec = new Recommendation(
+            $userId,
+            $post.getId(),
+            $post.getContentType(),
+            $post.getCategory(),
+            $post.getContent()
+        );
+        rec.setPriorityScore(6.0);
+        rec.setReasoning("Found via backward chaining");
+        insert(rec);
+        System.out.println("✓ Backward: Recommendation for " + $user.getName() +
+                          " -> " + $post.getCategory());
+end
+
+// Rekurzivna query za pronalaženje "lanca" povezanih postova
+query "isConnectedTo"(Post post1, Post post2)
+    // Bazni slučaj: Postovi su direktno povezani (ista kategorija)
+    post1: Post($cat: category)
+    and
+    post2: Post(category == $cat, id != post1.id)
+    or
+    // Rekurzivni slučaj: Postoji međupost koji ih povezuje
+    (
+        $intermediatePost: Post(
+            category == post1.category,
+            id != post1.id
+        )
+        and
+        isConnectedTo($intermediatePost, post2;)
+    )
+end
+
+// Pronađi sve postove povezane sa danim postom
+rule "Find Connected Content"
+    when
+        $trigger: String(this == "findConnected")
+        $user: User($userId: id)
+        $startPost: Post($category: category, category memberOf $user.interests)
+        ?isConnectedTo($startPost, $connectedPost;)
+        not Recommendation(userId == $userId, postId == $connectedPost.id)
+    then
+        Recommendation rec = new Recommendation(
+            $userId,
+            $connectedPost.getId(),
+            $connectedPost.getContentType(),
+            $connectedPost.getCategory(),
+            $connectedPost.getContent()
+        );
+        rec.setPriorityScore(5.5);
+        rec.setReasoning("Connected through content chain");
+        insert(rec);
+        System.out.println("✓ Found connected post: " + $connectedPost.getCategory());
+end
