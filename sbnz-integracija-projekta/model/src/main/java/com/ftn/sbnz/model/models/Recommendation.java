@@ -1,6 +1,9 @@
 package com.ftn.sbnz.model.models;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -17,7 +20,6 @@ public class Recommendation {
     private double predictedEngagement;
     private String status;
 
-    // Podrazumevani konstruktor
     public Recommendation() {
         this.status = "pending";
         this.priorityScore = 0.0;
@@ -42,4 +44,5 @@ public class Recommendation {
             this.reasoning += "; " + reason;
         }
     }
+
 }

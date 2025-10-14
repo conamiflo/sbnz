@@ -49,8 +49,8 @@ public class TemplateService {
 
             for (Recommendation r : recommendations) {
                 kieSession.insert(r);
-                System.out.println("Inserted recommendation for user: " + r.getUserId()
-                        + " | Post: " + r.getPostId());
+                System.out.println("Inserted recommendation for user: " + r.getUser().getId()
+                        + " | Post: " + r.getPost().getId());
             }
 
             System.out.println();

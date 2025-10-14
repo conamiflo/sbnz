@@ -9,7 +9,7 @@ import java.time.DayOfWeek;
 rule "Content Recommendation Based on Interests"
     when
         $user: User($interests: interests)
-        $post: Post(user != $user, category memberOf $interests, engagementRate > 0.03)
+        $post: Post(user != $user, category memberOf $interests, engagementRate >= 0.0)
         not Recommendation(user == $user, post == $post)
     then
         Recommendation rec = new Recommendation($user, $post);
