@@ -44,14 +44,12 @@ public class SocialMediaRecommendationService {
         response.setTotalCount(recommendations.size());
         response.setMessage("Successfully generated " + recommendations.size() + " recommendations");
 
-        // KLJUČNA IZMENA: Ovaj kod je sada usklađen sa novom Recommendation klasom
-        // jer koristi r.getUser().getId() umesto nepostojećeg r.getUserId()
-        Map<String, List<Recommendation>> recommendationsByUser = recommendations.stream()
+        Map<Long, List<Recommendation>> recommendationsByUser = recommendations.stream()
                 .collect(Collectors.groupingBy(r -> {
                     if (r.getUser() != null && r.getUser().getId() != null) {
-                        return r.getUser().getId().toString();
+                        return r.getUser().getId();
                     }
-                    return "unknown";
+                    return -1L;
                 }));
         response.setRecommendationsByUser(recommendationsByUser);
 
@@ -67,6 +65,7 @@ public class SocialMediaRecommendationService {
 
         return response;
     }
+
 
     private List<Recommendation> generateRecommendationsInternal() {
         KieSession kieSession = null;

@@ -31,7 +31,20 @@ public class Post {
     private int shares;
     private int reach;
     private double engagementRate;
-    
+
+    public Post(User user, String content, String contentType, String category, List<String> hashtags, LocalDateTime publishTime, int likes, int comments, int shares, int reach, double engagementRate) {
+        this.user = user;
+        this.content = content;
+        this.contentType = contentType;
+        this.category = category;
+        this.hashtags = hashtags;
+        this.publishTime = publishTime;
+        this.likes = likes;
+        this.comments = comments;
+        this.shares = shares;
+        this.reach = reach;
+        this.engagementRate = engagementRate;
+    }
 
     public void addHashtag(String hashtag) {
         this.hashtags.add(hashtag);

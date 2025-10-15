@@ -4,43 +4,40 @@ import com.ftn.sbnz.model.models.User
 import com.ftn.sbnz.model.models.Post
 import com.ftn.sbnz.model.models.Recommendation
 
-// Jednostavna rekurzivna query: Da li post odgovara korisniku?
-query "isRelevantFor"(Post post, User user)
+// Query: Does the post match the user's interests?
+query "isRelevantFor"(Post $post, User $user)
     (
-        post: Post($category: category)
-        and
-        user: User($interests: interests)
-        and
-        eval($interests contains $category)
+        // Direct match - post category is in user's interests
+        eval($user.getInterests().contains($post.getCategory()))
     )
     or
     (
+        // Recursive case - similar post is relevant
         $similarPost: Post(
-            category == post.category,
-            contentType == post.contentType,
-            id != post.id
+            category == $post.getCategory(),
+            contentType == $post.getContentType(),
+            id != $post.getId()
         )
         and
-        isRelevantFor($similarPost, user;)
+        isRelevantFor($similarPost, $user;)
     )
 end
 
-// Pravilo koje koristi backward chaining query
+// Rule that uses backward chaining query
 rule "Find Relevant Content"
     when
         $user: User($userId: id)
-        $post: Post(userId != $userId)
-        // Pozovi backward query
+        $post: Post($postUserId: user.id, $postUserId != $userId)
+        // Call backward query
         ?isRelevantFor($post, $user;)
-        not Recommendation(userId == $userId, postId == $post.id)
+        not Recommendation(user.id == $userId, post.id == $post.id)
     then
-        Recommendation rec = new Recommendation(
-            $userId,
-            $post.getId(),
-            $post.getContentType(),
-            $post.getCategory(),
-            $post.getContent()
-        );
+        Recommendation rec = new Recommendation();
+        rec.setUser($user);
+        rec.setPost($post);
+        rec.setContentType($post.getContentType());
+        rec.setCategory($post.getCategory());
+        rec.setContent($post.getContent());
         rec.setPriorityScore(6.0);
         rec.setReasoning("Found via backward chaining");
         insert(rec);
@@ -48,40 +45,43 @@ rule "Find Relevant Content"
                           " -> " + $post.getCategory());
 end
 
-// Rekurzivna query za pronalaženje "lanca" povezanih postova
-query "isConnectedTo"(Post post1, Post post2)
-    // Bazni slučaj: Postovi su direktno povezani (ista kategorija)
-    post1: Post($cat: category)
-    and
-    post2: Post(category == $cat, id != post1.id)
-    or
-    // Rekurzivni slučaj: Postoji međupost koji ih povezuje
+// Recursive query for finding "chain" of connected posts
+query "isConnectedTo"(Post $post1, Post $post2)
+    // Base case - posts share the same category
     (
-        $intermediatePost: Post(
-            category == post1.category,
-            id != post1.id
+        eval($post1.getCategory().equals($post2.getCategory()) &&
+             !$post1.getId().equals($post2.getId()))
+    )
+    or
+    // Recursive case - connected through intermediate post
+    (
+        $mid: Post(
+            category == $post1.getCategory(),
+            id != $post1.getId()
         )
         and
-        isConnectedTo($intermediatePost, post2;)
+        isConnectedTo($mid, $post2;)
     )
 end
 
-// Pronađi sve postove povezane sa danim postom
+// Find all posts connected to a given post
 rule "Find Connected Content"
     when
         $trigger: String(this == "findConnected")
         $user: User($userId: id)
-        $startPost: Post($category: category, category memberOf $user.interests)
+        $startPost: Post(
+            $category: category,
+            category memberOf $user.getInterests()
+        )
         ?isConnectedTo($startPost, $connectedPost;)
-        not Recommendation(userId == $userId, postId == $connectedPost.id)
+        not Recommendation(user.id == $userId, post.id == $connectedPost.id)
     then
-        Recommendation rec = new Recommendation(
-            $userId,
-            $connectedPost.getId(),
-            $connectedPost.getContentType(),
-            $connectedPost.getCategory(),
-            $connectedPost.getContent()
-        );
+        Recommendation rec = new Recommendation();
+        rec.setUser($user);
+        rec.setPost($connectedPost);
+        rec.setContentType($connectedPost.getContentType());
+        rec.setCategory($connectedPost.getCategory());
+        rec.setContent($connectedPost.getContent());
         rec.setPriorityScore(5.5);
         rec.setReasoning("Connected through content chain");
         insert(rec);

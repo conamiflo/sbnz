@@ -1,0 +1,43 @@
+meta {
+  name: Register user
+  type: http
+}
+
+request {
+  method: POST
+  url: http://localhost:8080/api/auth/register
+  body: json
+  json: {
+    "username": "john_doe",
+    "password": "12345",
+    "name": "John Doe",
+    "age": 25,
+    "location": "New York",
+    "gender": "Male",
+    "interests": ["music", "travel", "sports"],
+    "creatorType": "influencer",
+    "audienceSize": 5000
+  }
+  headers: {
+    Content-Type: application/json
+  }
+}
+
+meta {
+  name: Login user
+  type: http
+}
+
+request {
+  method: POST
+  url: http://localhost:8080/api/auth/login
+  body: json
+  json: {
+    "username": "john_doe",
+    "password": "12345"
+  }
+  headers: {
+    Content-Type: application/json
+    Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzZWxmIiwic3ViIjoiam9obl9kb2UiLCJleHAiOjg2NDAwMDE3NjA1MjkzNTksImlhdCI6MTc2MDUyOTM1OSwic2NvcGUiOiJST0xFX1VTRVIifQ.lhZ1NXdJueQiHaBDn98AZFnW2svyl0pE8Mrf-89QX7HcSWBMGsB90YlAvI2QWtcYGlat4fo8ZD4mW_UsvJUhrwRQ2fEaM7w3ZvgZZjFq2l0OVQ092lFJy6OwXsQ4fyNFn_iGSdKaKg0bpNjFgAEWggclzooSB0NOK2tLUvXc8uNqoWi2kkoasxp4Rgp4TPy70wLcrN6ommgY3oeUeHyj4jJMI0QLTm4vGNEVrwFT6Q1KMLAuu9cFZojCLkKqpi5qg87r6Bv0lnh_zXWTbNYCz7yIjZuO_Bopa-0wAEH7VTK8kLwl43Y0OxPRV14vMmgSzZrjQyVvBDk2jmswYll3kw
+  }
+}

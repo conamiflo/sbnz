@@ -34,6 +34,15 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
 
+    public User(String name, int age, String location, String gender, String creatorType, int audienceSize) {
+        this.name = name;
+        this.age = age;
+        this.location = location;
+        this.gender = gender;
+        this.creatorType = creatorType;
+        this.audienceSize = audienceSize;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -45,6 +54,11 @@ public class User {
                 ", creatorType='" + creatorType + '\'' +
                 ", audienceSize=" + audienceSize +
                 '}';
+    }
+
+    public List<String> addInterest(String interest){
+        interests.add(interest);
+        return interests;
     }
 
 }
