@@ -1,5 +1,6 @@
 package com.ftn.sbnz.service.services;
 
+import com.ftn.sbnz.model.models.Recommendation;
 import org.drools.decisiontable.ExternalSpreadsheetCompiler;
 import org.kie.api.KieServices;
 import org.kie.api.builder.*;
@@ -49,15 +50,17 @@ public class TemplateService {
             if (kb.getResults().hasMessages(Message.Level.ERROR)) {
                 throw new RuntimeException("Drools build errors:\n" + kb.getResults());
             }
-            for (Recommendation r : recommendations) {
-                kieSession.insert(r);
-                System.out.println("Inserted recommendation for user: " + r.getUser().getId()
-                        + " | Post: " + r.getPost().getId());
-            }
+
 
             KieContainer kieContainer = ks.newKieContainer(ks.getRepository().getDefaultReleaseId());
             KieSession kieSession = kieContainer.newKieSession();
 
+//            for (Recommendation r : recommendations) {
+//                kieSession.insert(r);
+//                System.out.println("Inserted recommendation for user: " + r.getUser().getId()
+//                        + " | Post: " + r.getPost().getId());
+//            }
+//
             return kieSession;
 
         } catch (Exception e) {
