@@ -26,7 +26,7 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
-    private List<String> interests;
+    private List<String> interests = new ArrayList<>();
     private String creatorType;
     private int audienceSize;
     private String username;

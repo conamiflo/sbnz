@@ -32,17 +32,18 @@ when
         creatorType == "@{targetAudience}"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "@{contentType}",
         category == "@{category}",
         engagementRate >= @{minEngagement}
     )
     $trend: TrendingHashtag(tag == "@{hashtag}")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "@{contentType}", 
         "@{category}",
         $post.getContent()

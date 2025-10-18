@@ -74,14 +74,20 @@ public class RecommendationController {
     public String generateFromExcel() {
         KieSession session = templateService.generateRulesFromTable();
 
-        // Test user
-        User user = new User("ognjen", 22, "Novi Sad", "male", "nzm", 1000);
-        user.addInterest("fashion");
-        user.addInterest("fitness");
+        // User who will receive recommendations
+        User targetUser = new User("ognjen", 22, "Novi Sad", "male", "influencer", 1000);
+        targetUser.setId(1L);
+        targetUser.addInterest("fashion");
+        targetUser.addInterest("fitness");
+        targetUser.addInterest("tech");
 
-        // Create posts with full constructor
+        // Different user who owns the posts
+        User contentCreator = new User("john_doe", 28, "New York", "male", "creator", 5000);
+        contentCreator.setId(2L);
+
+        // Create posts owned by contentCreator (NOT targetUser)
         Post post1 = new Post(
-                user,
+                contentCreator,  // Different user!
                 "Fashion tips for summer",
                 "image",
                 "fashion",
@@ -91,11 +97,12 @@ public class RecommendationController {
                 30,    // comments
                 15,    // shares
                 2000,  // reach
-                0.07   // engagementRate
+                0.07   // engagementRate (>= 0.06 required)
         );
+        post1.setId(101L);
 
         Post post2 = new Post(
-                user,
+                contentCreator,  // Different user!
                 "Morning workout routine",
                 "video",
                 "fitness",
@@ -105,27 +112,70 @@ public class RecommendationController {
                 25,    // comments
                 10,    // shares
                 1800,  // reach
-                0.06   // engagementRate
+                0.06   // engagementRate (>= 0.05 required)
         );
+        post2.setId(102L);
+
+        Post post3 = new Post(
+                contentCreator,  // Different user!
+                "Latest AI trends in 2025",
+                "video",
+                "tech",
+                List.of("#technology", "#AI", "#innovation"),
+                LocalDateTime.now().minusHours(3),
+                200,   // likes
+                50,    // comments
+                25,    // shares
+                3000,  // reach
+                0.09   // engagementRate (>= 0.04 required)
+        );
+        post3.setId(103L);
 
         // Trending hashtags
         TrendingHashtag trend1 = new TrendingHashtag("#style");
         TrendingHashtag trend2 = new TrendingHashtag("#fitness");
+        TrendingHashtag trend3 = new TrendingHashtag("#technology");
 
-        // Insert into session
+        // Insert into session - ORDER MATTERS!
+        session.insert(targetUser);
+        session.insert(contentCreator);
         session.insert(post1);
         session.insert(post2);
+        session.insert(post3);
         session.insert(trend1);
         session.insert(trend2);
-        session.insert(user);
+        session.insert(trend3);
+
+        System.out.println("=== Before firing rules ===");
+        System.out.println("Target user: " + targetUser.getName() +
+                " (ID: " + targetUser.getId() +
+                ", Type: " + targetUser.getCreatorType() + ")");
+        System.out.println("Interests: " + targetUser.getInterests());
+        System.out.println("Posts inserted: 3 (owned by user ID: " + contentCreator.getId() + ")");
 
         int fired = session.fireAllRules();
+
+        System.out.println("=== After firing rules ===");
+        System.out.println("Rules fired: " + fired);
+
+        // Collect recommendations
+        List<Recommendation> recommendations = new ArrayList<>();
+        for (Object obj : session.getObjects()) {
+            if (obj instanceof Recommendation) {
+                recommendations.add((Recommendation) obj);
+            }
+        }
+
+        System.out.println("Recommendations created: " + recommendations.size());
+        for (Recommendation rec : recommendations) {
+            System.out.println("  - " + rec.getReasoning() +
+                    " | Score: " + rec.getPriorityScore() +
+                    " | Category: " + rec.getCategory());
+        }
+
         session.dispose();
 
-        return "Rules generated from Excel. Fired " + fired + " rules.";
+        return "Rules generated from Excel. Fired " + fired + " rules. " +
+                "Created " + recommendations.size() + " recommendations.";
     }
-
-
-
-
 }

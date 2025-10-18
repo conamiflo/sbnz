@@ -18,17 +18,18 @@ when
         creatorType == "influencer"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "video",
         category == "fitness",
         engagementRate >= 0.05
     )
     $trend: TrendingHashtag(tag == "#fitness")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "video", 
         "fitness",
         $post.getContent()
@@ -56,17 +57,18 @@ when
         creatorType == "influencer"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "video",
         category == "tech",
         engagementRate >= 0.04
     )
     $trend: TrendingHashtag(tag == "#technology")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "video", 
         "tech",
         $post.getContent()
@@ -94,17 +96,18 @@ when
         creatorType == "creator"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "article",
         category == "tech",
         engagementRate >= 0.03
     )
     $trend: TrendingHashtag(tag == "#coding")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "article", 
         "tech",
         $post.getContent()
@@ -132,17 +135,18 @@ when
         creatorType == "influencer"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "image",
         category == "fashion",
         engagementRate >= 0.06
     )
     $trend: TrendingHashtag(tag == "#style")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "image", 
         "fashion",
         $post.getContent()
@@ -170,17 +174,18 @@ when
         creatorType == "creator"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "video",
         category == "cooking",
         engagementRate >= 0.045
     )
     $trend: TrendingHashtag(tag == "#recipe")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "video", 
         "cooking",
         $post.getContent()
@@ -208,17 +213,18 @@ when
         creatorType == "creator"
     )
     $post: Post(
-        userId != $userId,
+        $postId: id,
+        user.id != $userId,
         contentType == "article",
         category == "fitness",
         engagementRate >= 0.035
     )
     $trend: TrendingHashtag(tag == "#health")
-    not Recommendation(userId == $userId, postId == $post.id)
+    not Recommendation(user.id == $userId, post.id == $postId)
 then
     Recommendation rec = new Recommendation(
-        $userId, 
-        $post.getId(),
+        $userId,
+        $postId,
         "article", 
         "fitness",
         $post.getContent()
