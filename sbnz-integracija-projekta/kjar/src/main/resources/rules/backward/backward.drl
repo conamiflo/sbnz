@@ -3,34 +3,22 @@ package backward
 import com.ftn.sbnz.model.models.User
 import com.ftn.sbnz.model.models.Post
 import com.ftn.sbnz.model.models.Recommendation
+import java.util.HashSet
 
-// Query: Does the post match the user's interests?
+// Simple query: Does the post match the user's interests?
 query "isRelevantFor"(Post $post, User $user)
-    (
-        // Direct match - post category is in user's interests
-        eval($user.getInterests().contains($post.getCategory()))
-    )
-    or
-    (
-        // Recursive case - similar post is relevant
-        $similarPost: Post(
-            category == $post.getCategory(),
-            contentType == $post.getContentType(),
-            id != $post.getId()
-        )
-        and
-        isRelevantFor($similarPost, $user;)
-    )
+    // Direct match - post category is in user's interests
+    eval($user.getInterests().contains($post.getCategory()))
 end
 
 // Rule that uses backward chaining query
 rule "Find Relevant Content"
     when
         $user: User($userId: id)
-        $post: Post($postUserId: user.id, $postUserId != $userId)
+        $post: Post($postId: id, $postUserId: user.id, $postUserId != $userId)
         // Call backward query
         ?isRelevantFor($post, $user;)
-        not Recommendation(user.id == $userId, post.id == $post.id)
+        not Recommendation(user.id == $userId, post.id == $postId)
     then
         Recommendation rec = new Recommendation();
         rec.setUser($user);
@@ -39,41 +27,43 @@ rule "Find Relevant Content"
         rec.setCategory($post.getCategory());
         rec.setContent($post.getContent());
         rec.setPriorityScore(6.0);
-        rec.setReasoning("Found via backward chaining");
+        rec.setReasoning("Found via backward chaining - interest match");
         insert(rec);
         System.out.println("✓ Backward: Recommendation for " + $user.getName() +
                           " -> " + $post.getCategory());
 end
 
-// Recursive query for finding "chain" of connected posts
-query "isConnectedTo"(Post $post1, Post $post2)
-    // Base case - posts share the same category
-    (
-        eval($post1.getCategory().equals($post2.getCategory()) &&
-             !$post1.getId().equals($post2.getId()))
-    )
-    or
-    // Recursive case - connected through intermediate post
-    (
-        $mid: Post(
-            category == $post1.getCategory(),
-            id != $post1.getId()
-        )
-        and
-        isConnectedTo($mid, $post2;)
+// Helper object to track visited posts (prevents cycles)
+declare VisitedPost
+    postId: Long
+    chainId: String
+end
+
+// Simplified connection query WITHOUT recursion
+// This finds posts with the same category (1-hop connection)
+query "isDirectlyConnected"(Post $post1, Post $post2)
+    Post(
+        this == $post2,
+        category == $post1.category,
+        id != $post1.id
     )
 end
 
-// Find all posts connected to a given post
-rule "Find Connected Content"
+// Find connected content using direct connections only
+// This avoids infinite recursion by limiting to 1 hop
+rule "Find Connected Content - Direct"
     when
-        $trigger: String(this == "findConnected")
-        $user: User($userId: id)
+        $user: User($userId: id, $interests: interests)
         $startPost: Post(
+            $startId: id,
             $category: category,
-            category memberOf $user.getInterests()
+            category memberOf $interests,
+            user.id != $userId
         )
-        ?isConnectedTo($startPost, $connectedPost;)
+        // Query returns $connectedPost - don't rebind it
+        ?isDirectlyConnected($startPost, $connectedPost;)
+        // Use eval to check additional constraints without rebinding
+        eval($connectedPost.getUser().getId() != $userId)
         not Recommendation(user.id == $userId, post.id == $connectedPost.id)
     then
         Recommendation rec = new Recommendation();
@@ -83,7 +73,48 @@ rule "Find Connected Content"
         rec.setCategory($connectedPost.getCategory());
         rec.setContent($connectedPost.getContent());
         rec.setPriorityScore(5.5);
-        rec.setReasoning("Connected through content chain");
+        rec.setReasoning("Connected through content chain (same category: " + $category + ")");
         insert(rec);
-        System.out.println("✓ Found connected post: " + $connectedPost.getCategory());
+        System.out.println("✓ Found connected post: " + $connectedPost.getCategory() +
+                          " (ID: " + $connectedPost.getId() + ")");
+end
+
+// Alternative: If you MUST have multi-hop recursion, use a programmatic approach
+// This rule finds 2-hop connections manually (A -> B -> C)
+rule "Find 2-Hop Connected Content"
+    when
+        $user: User($userId: id, $interests: interests)
+        $startPost: Post(
+            $startId: id,
+            $startCategory: category,
+            category memberOf $interests,
+            user.id != $userId
+        )
+        // First hop
+        $midPost: Post(
+            $midId: id,
+            category == $startCategory,
+            id != $startId,
+            user.id != $userId
+        )
+        // Second hop
+        $endPost: Post(
+            $endId: id,
+            category == $startCategory,
+            id != $startId,
+            id != $midId,
+            user.id != $userId
+        )
+        not Recommendation(user.id == $userId, post.id == $endId)
+    then
+        Recommendation rec = new Recommendation();
+        rec.setUser($user);
+        rec.setPost($endPost);
+        rec.setContentType($endPost.getContentType());
+        rec.setCategory($endPost.getCategory());
+        rec.setContent($endPost.getContent());
+        rec.setPriorityScore(5.0);
+        rec.setReasoning("Connected through 2-hop content chain");
+        insert(rec);
+        System.out.println("✓ Found 2-hop connected post: " + $endPost.getId());
 end
