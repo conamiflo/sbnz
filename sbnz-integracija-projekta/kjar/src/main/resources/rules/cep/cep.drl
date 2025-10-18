@@ -11,6 +11,7 @@ import com.ftn.sbnz.model.events.EngagementEvent.EngagementType;
 import com.ftn.sbnz.model.models.RelevantTrendAlert;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.model.models.Post;
+import java.util.Set; // Potreban import za Set
 
 // --- Deklaracije Događaja ---
 // Svaka klasa koja se koristi kao događaj u CEP-u mora biti deklarisana.
@@ -62,7 +63,7 @@ rule "Analyze Relevance of a Trending Hashtag"
         // DOHVATANJE KONTEKSTA: Pronalazi korisnika i njegove podatke
         $user: User($interests: interests)
         // ANALIZA: Proverava da li je trend relevantan za interese korisnika
-        eval($interests.contains($tag))
+        eval($interests.contains($tag.replace("#", "")))
         // Osigurava da se alert ne kreira više puta
         not RelevantTrendAlert(hashtag == $tag)
     then
@@ -76,14 +77,16 @@ end
 rule "Detect Audience Saturation through Drop in Shares"
     when
         // Definišemo trenutno vreme kao referentnu tačku
-        $now: Long() from System.currentTimeMillis()
+        $now: Long()
 
-        // Uslov 1: Pronađi kategoriju koja je objavljivana prečesto u poslednjih 14 dana
-        $category: String()
+        // KORAK 1: Pronađi JEDAN događaj objave da bi "uhvatio" kategoriju
+        // Ovim uspostavljamo kontekst za analizu
+        PostPublishedEvent($category: category)
+
+        // KORAK 2: Sada kada znamo kategoriju, izračunaj učestalost za nju
         $frequency: Number(intValue > 10) from accumulate(
             PostPublishedEvent(
-                category == $category,
-                // Proveravamo da li je vreme događaja unutar poslednjih 14 dana
+                category == $category, // Koristimo $category uhvaćen iznad
                 timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000)
             ),
             count(1)
@@ -180,3 +183,77 @@ end
 //        System.out.println("CEP RULE TRIGGERED: " + msg);
 //        insert(new EngagementDropAlert(msg, $recentAvg, $baseAvg));
 //end
+
+declare Overposting
+  category : String
+end
+declare ShareDrop
+  category : String
+end
+declare NoRescueSignal
+  category : String
+end
+
+// ========= A) Overposting: ≥ 8 postova iste kategorije u 48h =========
+rule "A_overposting_48h"
+when
+  PostPublishedEvent( $cat : category ) over window:time(48h)
+  Number( intValue >= 8 ) from accumulate(
+    PostPublishedEvent( category == $cat ) over window:time(48h), count(1)
+  )
+  not Overposting( category == $cat )
+then
+  System.out.println(">>> Rule A Fired for category: " + $cat);
+  insert( new Overposting($cat) );
+end
+
+// ========= B) ShareDrop: recent 7d < 0.6 * baseline 30d =========
+rule "B_share_drop_recent_vs_baseline"
+when
+    PostPublishedEvent( $cat : category ) over window:time(30d)
+    $basePostCount : Number( intValue > 0 ) from accumulate(
+        PostPublishedEvent( category == $cat ) over window:time(30d), count(1)
+    )
+    $recentShareCount : Number() from accumulate(
+        EngagementEvent( postCategory == $cat, type == EngagementType.SHARE ) over window:time(7d), count(1)
+    )
+    $recentPostCountNum : Number() from accumulate(
+        PostPublishedEvent( category == $cat ) over window:time(7d), count(1)
+    )
+    $baseShareCount : Number() from accumulate(
+        EngagementEvent( postCategory == $cat, type == EngagementType.SHARE ) over window:time(30d), count(1)
+    )
+    eval( ( $recentShareCount.doubleValue() / Math.max(1.0, $recentPostCountNum.doubleValue()) ) < ( 0.6 * ( $baseShareCount.doubleValue() / $basePostCount.doubleValue() ) ) )
+    not ShareDrop( category == $cat )
+then
+    System.out.println(">>> Rule B Fired for category: " + $cat);
+    insert( new ShareDrop($cat) );
+end
+
+// ========= C) NoRescueSignal: nema KOMENTARA u 72h =========
+rule "C_no_rescue_signal_72h"
+when
+  PostPublishedEvent( $cat : category ) over window:time(72h)
+  not( EngagementEvent( postCategory == $cat, type == EngagementType.COMMENT ) over window:time(72h) )
+  not NoRescueSignal( category == $cat )
+then
+  System.out.println(">>> Rule C Fired for category: " + $cat);
+  insert( new NoRescueSignal($cat) );
+end
+
+// ========= D) Konačni alert =========
+rule "D_audience_saturation_alert"
+// OBRISANO: salience 5
+when
+  Overposting( $cat : category )
+  ShareDrop( category == $cat )
+  NoRescueSignal( category == $cat )
+  not AudienceSaturationAlert( saturatedCategory == $cat )
+then
+  System.out.println(">>> Rule D Firing for category: " + $cat);
+  String msg = "UPOZORENJE: Zasićenje publike temom '" + $cat +
+                 "'. Prevelika učestalost objava dovela je do pada engagementa i drastičnog pada broja deljenja. " +
+                 "PREPORUKA: Smanjite učestalost i uvedite novu, srodnu kategoriju.";
+  System.out.println("COMPLEX CEP RULE TRIGGERED: " + msg);
+  insert( new AudienceSaturationAlert($cat, msg) );
+end

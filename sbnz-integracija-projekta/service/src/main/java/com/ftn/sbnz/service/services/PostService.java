@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -55,7 +57,9 @@ public class PostService {
 
         try {
             log.info("Ubacujem PostPublishedEvent u CEP sesiju: Post ID {}, Kategorija {}", savedPost.getId(), savedPost.getCategory());
-            cepKsession.insert(new PostPublishedEvent(savedPost.getId(), savedPost.getCategory()));
+            Date publishDate = Date.from(savedPost.getPublishTime().atZone(ZoneId.systemDefault()).toInstant());
+
+            cepKsession.insert(new PostPublishedEvent(savedPost.getId(), savedPost.getCategory(), publishDate));
             log.info("Događaj uspešno ubačen.");
         } catch (Exception e) {
             log.error("!!! GREŠKA PRILIKOM UBACIVANJA DOGAĐAJA U CEP SESIJU !!!", e);

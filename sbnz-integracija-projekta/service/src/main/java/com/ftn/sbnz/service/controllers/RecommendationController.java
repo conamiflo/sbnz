@@ -30,11 +30,6 @@ public class RecommendationController {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Glavni endpoint za generisanje preporuka.
-     * Sada je GET i ne prima nikakav RequestBody.
-     * Samo poziva servis koji radi sav posao.
-     */
     @GetMapping("/generate")
     public ResponseEntity<RecommendationResponse> generateRecommendations() {
         try {
@@ -48,9 +43,7 @@ public class RecommendationController {
         }
     }
 
-    /**
-     * Endpoint za demonstraciju ulančanog CEP pravila.
-     */
+
     @PostMapping("/cep/analyze-trends/{userId}")
     public ResponseEntity<?> analyzeTrendsForUser(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
@@ -62,9 +55,6 @@ public class RecommendationController {
         return ResponseEntity.ok(alerts);
     }
 
-    /**
-     * Endpoint za demonstraciju kompleksnog CEP pravila o zasićenju publike.
-     */
     @GetMapping("/cep/check-saturation")
     public ResponseEntity<?> checkAudienceSaturation() {
         Optional<AudienceSaturationAlert> alert = recommendationService.detectAudienceSaturation();
@@ -73,32 +63,6 @@ public class RecommendationController {
         }
         return ResponseEntity.ok("No audience saturation detected.");
     }
-
-
-//    @GetMapping("/cep-demo")
-//    public ResponseEntity<List<TrendingHashtag>> getTrendingHashtags() {
-//        try {
-//            List<TrendingHashtag> trending = recommendationService.detectTrendingHashtags();
-//            return ResponseEntity.ok(trending);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(500).build();
-//        }
-//    }
-//
-//    @GetMapping("/engagement-drop-demo")
-//    public ResponseEntity<EngagementDropAlert> getEngagementDrop() {
-//        try {
-//            EngagementDropAlert alert = recommendationService.detectEngagementDrop();
-//            if (alert != null) {
-//                return ResponseEntity.ok(alert);
-//            }
-//            return ResponseEntity.ok(new EngagementDropAlert("No significant engagement drop detected.", 0, 0));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(500).build();
-//        }
-//    }
 
 
 }
