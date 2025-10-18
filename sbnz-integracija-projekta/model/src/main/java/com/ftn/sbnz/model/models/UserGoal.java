@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserGoal {
-    private String userId;
+    private Long userId;
     private String target; // "engagement", "reach", "conversion", itd.
 
     @Override

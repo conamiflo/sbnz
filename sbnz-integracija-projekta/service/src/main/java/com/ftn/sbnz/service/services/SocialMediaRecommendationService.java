@@ -80,15 +80,16 @@ public class SocialMediaRecommendationService {
         return response;
     }
 
-
     private List<Recommendation> generateRecommendationsInternal() {
         KieSession kieSession = null;
         try {
             kieSession = kieContainer.newKieSession("fwKsession");
 
+            // Get existing data from database
             List<User> users = userRepository.findAll();
             List<Post> posts = postRepository.findAll();
 
+            // Insert users and posts
             for (User user : users) {
                 kieSession.insert(user);
             }
@@ -96,14 +97,60 @@ public class SocialMediaRecommendationService {
                 kieSession.insert(post);
             }
 
-            kieSession.fireAllRules();
+            // ===== ADD TRENDING HASHTAGS to trigger Level 3 =====
+            TrendingHashtag trend1 = new TrendingHashtag("AI");
+            TrendingHashtag trend2 = new TrendingHashtag("Innovation");
+            TrendingHashtag trend3 = new TrendingHashtag("TechNews");
+            TrendingHashtag trend4 = new TrendingHashtag("Football");
+            TrendingHashtag trend5 = new TrendingHashtag("Highlights");
+            TrendingHashtag trend6 = new TrendingHashtag("SportsUpdate");
 
+            kieSession.insert(trend1);
+            kieSession.insert(trend2);
+            kieSession.insert(trend3);
+            kieSession.insert(trend4);
+            kieSession.insert(trend5);
+            kieSession.insert(trend6);
+
+            // ===== ADD USER GOALS to trigger Level 5 and 5b =====
+            for (User user : users) {
+                if (user.getId() != null) {
+                    // Create an engagement goal for each user
+                    UserGoal engagementGoal = new UserGoal();
+                    engagementGoal.setUserId(user.getId());
+                    engagementGoal.setTarget("engagement");
+                    kieSession.insert(engagementGoal);
+
+                    // Optionally add a reach goal as well
+                    UserGoal reachGoal = new UserGoal();
+                    reachGoal.setUserId(user.getId());
+                    reachGoal.setTarget("reach");
+                    kieSession.insert(reachGoal);
+                }
+            }
+
+            System.out.println("=== Drools Session Facts ===");
+            System.out.println("Users inserted: " + users.size());
+            System.out.println("Posts inserted: " + posts.size());
+            System.out.println("Trending hashtags inserted: 6");
+            System.out.println("User goals inserted: " + (users.size() * 2));
+            System.out.println("============================");
+
+            // Fire all rules
+            int rulesFired = kieSession.fireAllRules();
+            System.out.println("Total rules fired: " + rulesFired);
+
+            // Collect recommendations
             List<Recommendation> recommendations = new ArrayList<>();
             for (Object fact : kieSession.getObjects(o -> o instanceof Recommendation)) {
                 recommendations.add((Recommendation) fact);
             }
 
             recommendations.sort(Comparator.comparing(Recommendation::getPriorityScore).reversed());
+
+            System.out.println("Total recommendations created: " + recommendations.size());
+            System.out.println("============================");
+
             return recommendations;
 
         } finally {
