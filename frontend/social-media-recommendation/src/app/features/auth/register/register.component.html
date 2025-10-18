@@ -1,1 +1,147 @@
-<p>register works!</p>
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h2>FYP Project</h2> <p>Join us and get recommendations</p> </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          class="form-input"
+          [class.invalid]="name?.invalid && name?.touched"
+          placeholder="Enter your name"
+        />
+        <div *ngIf="name?.invalid && name?.touched" class="error-message">
+          <span *ngIf="name?.errors?.['required']">Name is required</span>
+          <span *ngIf="name?.errors?.['minlength']">Name must be at least 2 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-input"
+          [class.invalid]="username?.invalid && username?.touched"
+          placeholder="Choose a username"
+        />
+        <div *ngIf="username?.invalid && username?.touched" class="error-message">
+          <span *ngIf="username?.errors?.['required']">Username is required</span>
+          <span *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters</span>
+          <span *ngIf="username?.errors?.['usernameTaken']">Username is already taken</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            [class.invalid]="password?.invalid && password?.touched"
+            placeholder="Create a password"
+          />
+          <div *ngIf="password?.invalid && password?.touched" class="error-message">
+            <span *ngIf="password?.errors?.['required']">Password is required</span>
+            <span *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            class="form-input"
+            [class.invalid]="(confirmPassword?.invalid || registerForm.errors?.['passwordMismatch']) && confirmPassword?.touched"
+            placeholder="Confirm your password"
+          />
+          <div *ngIf="(confirmPassword?.invalid || registerForm.errors?.['passwordMismatch']) && confirmPassword?.touched" class="error-message">
+            <span *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</span>
+            <span *ngIf="registerForm.errors?.['passwordMismatch'] && !confirmPassword?.errors?.['required']">Passwords do not match</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="age">Age (Optional)</label>
+          <input type="number" id="age" formControlName="age" class="form-input"
+                 [class.invalid]="age?.invalid && age?.touched" placeholder="Enter your age">
+          <div *ngIf="age?.invalid && age?.touched" class="error-message">
+            <span *ngIf="age?.errors?.['min'] || age?.errors?.['max']">Please enter a valid age</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="location">Location (Optional)</label>
+          <input type="text" id="location" formControlName="location" class="form-input" placeholder="e.g., Belgrade, Serbia">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Gender (Optional)</label>
+        <select id="gender" formControlName="gender" class="form-input">
+          <option [ngValue]="null">-- Select Gender --</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="interests">Interests (Optional, comma-separated)</label>
+        <input type="text" id="interests" formControlName="interests" class="form-input"
+               placeholder="e.g., fitness, cooking, tech">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="creatorType">Creator Type (Optional)</label>
+          <select id="creatorType" formControlName="creatorType" class="form-input">
+            <option [ngValue]="null">-- Select Type --</option>
+            <option value="Blogger">Blogger</option>
+            <option value="Vlogger">Vlogger</option>
+            <option value="Influencer">Influencer</option>
+            <option value="Photographer">Photographer</option>
+            <option value="Personal">Personal</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="audienceSize">Audience Size (Optional)</label>
+          <input type="number" id="audienceSize" formControlName="audienceSize" class="form-input"
+                 [class.invalid]="audienceSize?.invalid && audienceSize?.touched" placeholder="e.g., 10000">
+          <div *ngIf="audienceSize?.invalid && audienceSize?.touched" class="error-message">
+            <span *ngIf="audienceSize?.errors?.['min']">Audience size cannot be negative</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-error">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="registerForm.invalid || isLoading">
+        {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <p>Already have an account?
+        <a (click)="navigateToLogin()" class="link">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>

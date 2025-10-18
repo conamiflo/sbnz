@@ -16,12 +16,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -70,16 +72,33 @@ public class PostService {
         return new PostResponseDTO(newPost);
     }
 
-    public List<Post> getAllPosts() {
-        return postRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<PostResponseDTO> getAllPosts() {
+        List<Post> posts = postRepository.findAllWithUser();
+        return posts.stream()
+                .map(PostResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
-    public List<Post> getPostsByUserId(Long userId) {
+    @Transactional(readOnly = true)
+    public List<PostResponseDTO> getPostsByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-        return postRepository.findAllByUser(user);
+        List<Post> posts = postRepository.findAllByUser(user);
+        return posts.stream()
+                .map(PostResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
+
+    @Transactional
+    public PostResponseDTO getPostById(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));
+        return new PostResponseDTO(post); // Користи исти DTO
+    }
+
+    @Transactional
     public PostResponseDTO incrementLikes(Long postId) {
         Post post = postRepository.findById(postId) // [cite: 1]
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));
@@ -102,6 +121,7 @@ public class PostService {
         return new PostResponseDTO(updatedPost);
     }
 
+    @Transactional
     public PostResponseDTO incrementShares(Long postId) {
 
         Post post = postRepository.findById(postId)
@@ -122,7 +142,7 @@ public class PostService {
         return new PostResponseDTO(updatedPost);
     }
 
-
+    @Transactional
     public PostResponseDTO incrementComments(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));

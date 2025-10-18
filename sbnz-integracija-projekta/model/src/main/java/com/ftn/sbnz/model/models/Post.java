@@ -15,13 +15,13 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     private String content;
     private String contentType; 
     private String category;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "post_hashtag", joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "hashtags")
     private List<String> hashtags;

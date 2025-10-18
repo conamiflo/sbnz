@@ -1,0 +1,48 @@
+<div class="create-post-container"> <div class="create-post-card">
+  <h2>Create New Post</h2>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <form (ngSubmit)="onSubmit()" #postForm="ngForm" class="create-post-form">
+
+    <div class="form-group">
+      <label for="content">Content:</label>
+      <textarea id="content" name="content" class="form-input" rows="5"
+                [(ngModel)]="formData.content" required placeholder="What's on your mind?"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="contentType">Content Type:</label>
+      <select id="contentType" name="contentType" class="form-input" [(ngModel)]="formData.contentType" required>
+        <option [ngValue]="null" disabled>-- Select Type --</option>
+        <option value="text">Text</option>
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="article">Article</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <input type="text" id="category" name="category" class="form-input"
+             [(ngModel)]="formData.category" required placeholder="e.g., fitness, tech, cooking">
+    </div>
+
+    <div class="form-group">
+      <label for="hashtags">Hashtags (comma-separated):</label>
+      <input type="text" id="hashtags" name="hashtags" class="form-input"
+             [(ngModel)]="formData.hashtags" placeholder="e.g., #healthy, #devlife">
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="postForm.invalid || isLoading">
+      {{ isLoading ? 'Publishing...' : 'Publish Post' }}
+    </button>
+
+  </form>
+</div>
+</div>

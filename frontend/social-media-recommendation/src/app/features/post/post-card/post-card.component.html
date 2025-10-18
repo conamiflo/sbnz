@@ -1,0 +1,66 @@
+<div class="post-card" *ngIf="post">
+
+  <div class="post-header">
+    <div class="user-info">
+      <div class="avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
+      <div class="user-details">
+        <span class="username">{{ post.username }}</span>
+        <span class="timestamp">{{ post.publishTime | date:'medium' }}</span>
+      </div>
+    </div>
+    <div class="category">{{ post.category }}</div>
+  </div>
+
+  <div class="post-content">
+    <p>{{ post.content }}</p>
+    <span class="content-type">({{ post.contentType }})</span>
+  </div>
+
+  <div class="post-hashtags" *ngIf="post.hashtags && post.hashtags.length > 0">
+    <span *ngFor="let tag of post.hashtags" class="hashtag">#{{ tag }}</span>
+  </div>
+
+  <div class="post-stats-detailed">
+    <div class="stat-item">
+      <span class="stat-value">{{ likeCount }}</span>
+      <span class="stat-label">Likes</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{ commentCount }}</span>
+      <span class="stat-label">Comments</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value">{{ shareCount }}</span>
+      <span class="stat-label">Shares</span>
+    </div>
+    <div class="stat-item" *ngIf="post.reach != null && post.reach > 0">
+      <span class="stat-value">{{ post.reach }}</span>
+      <span class="stat-label">Reach</span>
+    </div>
+    <div class="stat-item" *ngIf="post.engagementRate != null && post.reach != null && post.reach > 0">
+      <span class="stat-value">{{ (post.engagementRate * 100).toFixed(2) }}%</span>
+      <span class="stat-label">Engagement</span>
+    </div>
+  </div>
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <div class="post-actions">
+    <button (click)="like()" [disabled]="isLoadingLike" class="action-button like-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+      {{ isLoadingLike ? '...' : 'Like' }}
+    </button>
+    <button (click)="comment()" [disabled]="isLoadingComment" class="action-button comment-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      {{ isLoadingComment ? '...' : 'Comment' }}
+    </button>
+    <button (click)="share()" [disabled]="isLoadingShare" class="action-button share-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+      {{ isLoadingShare ? '...' : 'Share' }}
+    </button>
+  </div>
+
+</div>
+
+<div *ngIf="!post">
+  Loading post data...
+</div>

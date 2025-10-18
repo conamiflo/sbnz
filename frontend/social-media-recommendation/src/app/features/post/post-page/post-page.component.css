@@ -1,0 +1,42 @@
+.post-page-container {
+  max-width: 650px; /* Слично ширини картице, али мало шире */
+  margin: 20px auto; /* Центрирај и додај маргину горе/доле */
+  padding: 0 15px; /* Мало размака са стране */
+  font-family: sans-serif;
+}
+
+.post-page-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.loading-indicator,
+.error-message,
+.no-posts-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 1.1em;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.error-message {
+  color: #d9534f;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+.error-message button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* Додатни размак између картица ако је потребно */
+app-post-card:not(:last-child) {
+  /* Možeš dodati margin-bottom ovde ako želiš veći razmak,
+     ali pošto card već ima margin-bottom, možda nije potrebno */
+}

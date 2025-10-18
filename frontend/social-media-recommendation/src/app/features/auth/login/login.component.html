@@ -1,1 +1,54 @@
-<p>login works!</p>
+<div class="login-container"> <div class="login-card">
+  <div class="login-header">
+    <h2>FYP Project Login</h2> <p>Welcome back!</p> </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        formControlName="username"
+        class="form-input"
+        [class.invalid]="username?.invalid && username?.touched"
+        placeholder="Enter your username"
+      />
+      <div *ngIf="username?.invalid && username?.touched" class="error-message">
+        <span *ngIf="username?.errors?.['required']">Username is required.</span>
+        <span *ngIf="username?.errors?.['minlength']">Username is too short.</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        class="form-input"
+        [class.invalid]="password?.invalid && password?.touched"
+        placeholder="Enter your password"
+      />
+      <div *ngIf="password?.invalid && password?.touched" class="error-message">
+        <span *ngIf="password?.errors?.['required']">Password is required.</span>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="loginForm.invalid || isLoading">
+      {{ isLoading ? 'Logging in...' : 'Login' }}
+    </button>
+  </form>
+
+  <div class="login-footer">
+    <p>Don't have an account?
+      <a (click)="navigateToRegister()" class="link">Sign up</a>
+    </p>
+  </div>
+
+</div>
+</div>

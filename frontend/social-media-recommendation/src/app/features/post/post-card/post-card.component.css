@@ -1,0 +1,175 @@
+:host {
+  display: block; /* Да компонента заузме простор */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* Бољи системски фонт */
+}
+
+.post-card {
+  background-color: #fff;
+  border: 1px solid #e5e7eb; /* Светлија граница */
+  border-radius: 12px; /* Заобљеније ивице */
+  margin-bottom: 20px;
+  padding: 20px 24px; /* Мало више padding-a */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Суптилнија сенка */
+  max-width: 600px; /* Ограничи ширину */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Мало већи размак */
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); /* Градијент */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600; /* Мало дебљи фонт */
+  font-size: 1.1em;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 600;
+  color: #1f2937; /* Тамнија боја */
+}
+
+.timestamp {
+  font-size: 0.8em;
+  color: #6b7280; /* Средње сива */
+}
+
+.category {
+  font-size: 0.75em; /* Мањи фонт */
+  background-color: #f3f4f6; /* Светло сива позадина */
+  padding: 4px 10px;
+  border-radius: 12px; /* Заобљеније */
+  color: #4b5563; /* Тамније сива */
+  font-weight: 500;
+}
+
+.post-content {
+  margin-bottom: 16px;
+  color: #374151; /* Мало светлија црна */
+  line-height: 1.6; /* Бољи проред */
+  white-space: pre-wrap; /* Поштује нове редове и размаке */
+}
+
+.content-type {
+  font-size: 0.8em;
+  color: #9ca3af; /* Светло сива */
+  margin-left: 5px;
+}
+
+.post-hashtags {
+  margin-bottom: 12px; /* Мањи размак */
+  display: flex; /* Да хештегови буду у реду */
+  flex-wrap: wrap; /* Преламање ако их има превише */
+  gap: 6px; /* Размак између хештегова */
+}
+
+.hashtag {
+  color: #4facfe; /* Плава боја */
+  font-size: 0.85em;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: rgba(79, 172, 254, 0.1); /* Лагана плава позадина */
+  padding: 2px 8px;
+  border-radius: 10px;
+  transition: background-color 0.2s;
+}
+.hashtag:hover {
+  background-color: rgba(79, 172, 254, 0.2);
+}
+
+/* Нови стилови за детаљне статистике */
+.post-stats-detailed {
+  display: flex;
+  flex-wrap: wrap; /* Преламање на мањим екранима */
+  gap: 20px; /* Већи размак */
+  font-size: 0.875em;
+  color: #6b7280;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6; /* Још светлија линија */
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column; /* Број изнад текста */
+  align-items: center; /* Центрирај */
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #1f2937; /* Тамнији бројеви */
+  font-size: 1.1em; /* Мало већи бројеви */
+}
+
+.stat-label {
+  font-size: 0.8em;
+  text-transform: uppercase; /* Велика слова */
+  letter-spacing: 0.05em; /* Мали размак између слова */
+}
+/* Крај нових стилова */
+
+.post-actions {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #f3f4f6; /* Линија изнад дугмића */
+  padding-top: 16px;
+}
+
+.action-button {
+  background: none;
+  border: none; /* Уклањамо границу */
+  border-radius: 8px; /* Мање заобљени */
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: #6b7280; /* Сива боја */
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex; /* Да иконица и текст буду у реду */
+  align-items: center;
+  gap: 6px; /* Размак између иконице и текста */
+}
+
+.action-button svg {
+  margin-bottom: -2px; /* Мало подижемо иконицу */
+}
+
+.action-button:hover:not(:disabled) {
+  background-color: #f3f4f6; /* Светло сива позадина на ховер */
+  color: #1f2937; /* Тамнија боја на ховер */
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-message {
+  color: #ef4444; /* Светлија црвена */
+  font-size: 0.8em;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  text-align: center;
+}

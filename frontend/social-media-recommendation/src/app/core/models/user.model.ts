@@ -1,6 +1,11 @@
 export interface User {
-    id: string;
-    username: string;
-    name: string;
-    surname: string;
+  id: number;
+  username: string;
+  name: string;
+  age?: number | null;
+  location?: string | null;
+  gender?: string | null;
+  interests?: string[];
+  creatorType?: string | null;
+  audienceSize?: number | null;
 }

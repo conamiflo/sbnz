@@ -1,0 +1,25 @@
+<div class="post-page-container">
+  <h1>For You</h1>
+
+  <div *ngIf="isLoading" class="loading-indicator">
+    Loading posts...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+    <button (click)="loadPosts()">Try Again</button> </div>
+
+  <div *ngIf="!isLoading && !error">
+    <div *ngIf="posts.length > 0; else noPosts">
+      <div *ngFor="let p of posts">
+        <app-post-card [post]="p"></app-post-card>
+      </div>
+    </div>
+
+    <ng-template #noPosts>
+      <div class="no-posts-message">
+        No posts available yet. Be the first to create one!
+      </div>
+    </ng-template>
+  </div>
+</div>

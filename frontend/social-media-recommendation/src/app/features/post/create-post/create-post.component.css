@@ -1,0 +1,90 @@
+.create-post-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f9fafb;
+  font-family: sans-serif;
+}
+
+.create-post-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 30px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.create-post-card h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #1f2937;
+}
+
+.create-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Razmak između polja */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+}
+
+.form-input, textarea.form-input, select.form-input {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box; /* Da padding ne širi element */
+}
+
+.form-input:focus, textarea.form-input:focus, select.form-input:focus {
+  border-color: #4facfe;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
+}
+
+textarea.form-input {
+  resize: vertical; /* Dozvoli samo vertikalno menjanje veličine */
+  min-height: 100px;
+}
+
+.btn-primary {
+  padding: 12px 20px;
+  background-color: #4facfe;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #3b82f6;
+}
+
+.btn-primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.alert {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;}
+.alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;}
