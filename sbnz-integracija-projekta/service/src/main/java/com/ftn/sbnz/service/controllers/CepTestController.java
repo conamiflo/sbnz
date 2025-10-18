@@ -9,6 +9,7 @@ import com.ftn.sbnz.service.services.SocialMediaRecommendationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,10 +26,10 @@ public class CepTestController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/relevant-trend/{userId}")
-    public ResponseEntity<List<RelevantTrendAlert>> testRelevantTrend(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    @GetMapping("/relevant-trend/{username}")
+    public ResponseEntity<List<RelevantTrendAlert>> testRelevantTrend(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
         List<RelevantTrendAlert> alerts = recommendationService.detectAndAnalyzeRelevantTrends(user);
         return ResponseEntity.ok(alerts);
     }
@@ -40,10 +41,10 @@ public class CepTestController {
                 .orElseGet(() -> ResponseEntity.ok("No audience saturation detected."));
     }
 
-    @GetMapping("/viral-momentum/{userId}")
-    public ResponseEntity<?> testViralMomentum(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    @GetMapping("/viral-momentum/{username}")
+    public ResponseEntity<?> testViralMomentum(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
 
         List<ViralMomentumAlert> alerts = recommendationService.detectViralMomentumWindow(user);
 

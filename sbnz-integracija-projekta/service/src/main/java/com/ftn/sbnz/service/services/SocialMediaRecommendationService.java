@@ -12,6 +12,7 @@ import com.ftn.sbnz.service.repositories.PostRepository;
 import com.ftn.sbnz.service.repositories.UserRepository;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.time.SessionPseudoClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -450,4 +451,28 @@ public class SocialMediaRecommendationService {
         return alerts;
     }
 
+    public List<RelevantTrendAlert> getRelevantTrendAlerts() {
+        List<RelevantTrendAlert> alerts = new ArrayList<>();
+        List<FactHandle> handlesToDelete = new ArrayList<>(); // Користи FactHandle за безбедно брисање
+
+        // Пронађи све RelevantTrendAlert објекте користећи FactHandle
+        for (FactHandle handle : cepKsession.getFactHandles(o -> o instanceof RelevantTrendAlert)) {
+            Object fact = cepKsession.getObject(handle);
+            if (fact instanceof RelevantTrendAlert) {
+                RelevantTrendAlert alert = (RelevantTrendAlert) fact;
+                alerts.add(alert);
+                handlesToDelete.add(handle); // Додај хендл за касније брисање
+            }
+        }
+
+        // Обриши алерте из сесије НАКОН што си их све покупио
+        for (FactHandle handle : handlesToDelete) {
+            cepKsession.delete(handle);
+        }
+
+        if (!alerts.isEmpty()) {
+            log.info("Pronađeno {} Relevant Trend alerta.", alerts.size());
+        }
+        return alerts;
+    }
 }

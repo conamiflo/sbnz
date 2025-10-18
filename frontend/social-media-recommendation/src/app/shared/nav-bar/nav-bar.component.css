@@ -6,19 +6,22 @@
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* Додато */
 }
 
 .navbar-content {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto 1fr auto; /* Промењено: Logo | Meni | Akcije */
   align-items: center;
   padding: 0 24px;
   height: 72px;
   box-sizing: border-box;
+  max-width: 1200px; /* Додато: ограничи ширину */
+  margin: 0 auto; /* Додато: центрирај */
 }
 
 .navbar-brand {
-  justify-self: start;
+  /* ... постојећи стилови ... */
   font-size: 24px;
   font-weight: 700;
   text-decoration: none;
@@ -26,15 +29,18 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  margin-right: 24px; /* Додато: размак од менија */
 }
 
 .navbar-menu {
   display: flex;
+  justify-content: center; /* Центрирај линкове */
   align-items: center;
   gap: 16px;
 }
 
 .nav-link {
+  /* ... постојећи стилови ... */
   font-size: 16px;
   font-weight: 600;
   color: #6b7280;
@@ -48,10 +54,6 @@
 .nav-link:hover {
   color: #1f2937;
   background-color: #f3f4f6;
-}
-
-.navbar-actions {
-  justify-self: end; 
 }
 
 .nav-link.active {
@@ -69,7 +71,15 @@
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
+.navbar-actions {
+  justify-self: end;
+  display: flex; /* Постави елементе у ред */
+  align-items: center;
+  gap: 12px; /* Додај размак између дугмића */
+}
+
 .logout-btn {
+  /* ... постојећи стилови ... */
   background: #eff6ff;
   border: 1px solid #dbeafe;
   border-radius: 12px;
@@ -82,7 +92,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .logout-btn:hover {
@@ -90,4 +99,43 @@
   box-shadow: 0 4px 14px rgba(79, 172, 254, 0.2);
   background: #dbeafe;
   border-color: #bfdbfe;
+}
+
+.cep-demo-btn {
+  background: #f3f4f6; /* Светло сива */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563; /* Тамно сива */
+  font-size: 13px; /* Мањи фонт */
+  font-weight: 500;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap; /* Да текст не прелази у нови ред */
+}
+
+.cep-demo-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+.cep-demo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Мањи размак */
+}
+
+.auth-links .nav-link {
+  font-size: 15px;
+  padding: 6px 10px;
+}
+
+.mobile-menu {
+  display: none;
 }

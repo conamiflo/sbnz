@@ -3,6 +3,7 @@ package com.ftn.sbnz.service.services;
 import com.ftn.sbnz.model.dto.request.PostCreateDTO;
 import com.ftn.sbnz.model.dto.response.PostResponseDTO;
 import com.ftn.sbnz.model.events.EngagementEvent;
+import com.ftn.sbnz.model.events.HashtagUsageEvent;
 import com.ftn.sbnz.model.events.PostPublishedEvent;
 import com.ftn.sbnz.model.models.Post;
 import com.ftn.sbnz.model.models.User;
@@ -63,6 +64,16 @@ public class PostService {
             Date publishDate = Date.from(savedPost.getPublishTime().atZone(ZoneId.systemDefault()).toInstant());
 
             cepKsession.insert(new PostPublishedEvent(savedPost.getId(), savedPost.getCategory(), publishDate));
+            if (savedPost.getHashtags() != null && !savedPost.getHashtags().isEmpty()) {
+                log.info("Ubacujem HashtagUsageEvent-ove...");
+                for (String tag : savedPost.getHashtags()) {
+                    String cleanTag = tag.startsWith("#") ? tag.substring(1) : tag;
+                    if (!cleanTag.isEmpty()) {
+                        cepKsession.insert(new HashtagUsageEvent(cleanTag));
+                    }
+                }
+                log.info("HashtagUsageEvent-ovi убачени.");
+            }
             log.info("Događaj uspešno ubačen.");
         } catch (Exception e) {
             log.error("!!! GREŠKA PRILIKOM UBACIVANJA DOGAĐAJA U CEP SESIJU !!!", e);
