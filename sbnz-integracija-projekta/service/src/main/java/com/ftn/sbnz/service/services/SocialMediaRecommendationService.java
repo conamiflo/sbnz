@@ -339,6 +339,115 @@ public class SocialMediaRecommendationService {
         }
     }
 
+    public List<ViralMomentumAlert> detectViralMomentumWindow(User user) {
+        KieSession kieSession = kieContainer.newKieSession("cepKsession");
+        try {
+            SessionPseudoClock clock = kieSession.getSessionClock();
+            List<ViralMomentumAlert> alerts = new ArrayList<>();
 
+            kieSession.insert(user);
+            log.info("=== Starting Viral Momentum Window detection for user: {} ===", user.getName());
+
+            // SAT POČINJE OD 0
+            long startTime = clock.getCurrentTime();
+
+            // KORAK 1: Simuliraj BASELINE aktivnost (rasporedi kroz 24h)
+            log.info("Step 1: Simulating baseline follower activity (24h)...");
+            for (int i = 0; i < 24; i++) {
+                // Pomeri sat na sledeći sat
+                if (i > 0) {
+                    clock.advanceTime(1, TimeUnit.HOURS);
+                }
+
+                Date t = new Date(clock.getCurrentTime());
+                kieSession.insert(new EngagementEvent(1L + i, "fitness", EngagementEvent.EngagementType.LIKE, t));
+                kieSession.insert(new EngagementEvent(100L + i, "fitness", EngagementEvent.EngagementType.COMMENT, t));
+            }
+            log.info("Baseline: 48 engagements over 24h (current time: {})", new Date(clock.getCurrentTime()));
+
+            // KORAK 2: Simuliraj SPIKE u aktivnosti (koncentrisano u 2h)
+            log.info("Step 2: Simulating engagement SPIKE (2h window)...");
+            for (int i = 0; i < 25; i++) {
+                clock.advanceTime(4, TimeUnit.MINUTES); // Pomeri sat napred
+
+                Date t = new Date(clock.getCurrentTime());
+                EngagementEvent.EngagementType type = (i % 2 == 0)
+                        ? EngagementEvent.EngagementType.LIKE
+                        : EngagementEvent.EngagementType.COMMENT;
+                kieSession.insert(new EngagementEvent(200L + i, "fitness", type, t));
+            }
+            log.info("Spike: 25 engagements in last 2h (current time: {})", new Date(clock.getCurrentTime()));
+
+            // KORAK 3: Simuliraj trending hashtag
+            log.info("Step 3: Simulating trending hashtag relevant to user interests...");
+            String relevantHashtag = "#" + (user.getInterests().isEmpty() ? "fitness" : user.getInterests().get(0));
+
+            // Vrati sat unazad za baseline hashtag-a
+            long currentTime = clock.getCurrentTime();
+            long sevenDaysAgo = currentTime - TimeUnit.DAYS.toMillis(7);
+
+            // Simuliraj baseline za hashtag (raspodeljeno kroz 7 dana)
+            for (int i = 0; i < 14; i++) {
+                long eventTime = sevenDaysAgo + (i * TimeUnit.HOURS.toMillis(12));
+                HashtagUsageEvent hashtagEvent = new HashtagUsageEvent(relevantHashtag);
+                hashtagEvent.setTimestamp(new Date(eventTime));
+                kieSession.insert(hashtagEvent);
+            }
+
+            // Spike za hashtag (poslednje 6h)
+            log.info("Creating hashtag spike for: {}", relevantHashtag);
+            long sixHoursAgo = currentTime - TimeUnit.HOURS.toMillis(6);
+            for (int i = 0; i < 40; i++) {
+                long eventTime = sixHoursAgo + (i * TimeUnit.MINUTES.toMillis(9));
+                HashtagUsageEvent hashtagEvent = new HashtagUsageEvent(relevantHashtag);
+                hashtagEvent.setTimestamp(new Date(eventTime));
+                kieSession.insert(hashtagEvent);
+            }
+
+            // KORAK 4: Fire all rules
+            log.info("Step 4: Firing all CEP rules...");
+            int rulesFired = kieSession.fireAllRules();
+            log.info("Total rules fired: {}", rulesFired);
+
+            // KORAK 5: Collect alerts
+            for (Object fact : kieSession.getObjects(o -> o instanceof ViralMomentumAlert)) {
+                ViralMomentumAlert alert = (ViralMomentumAlert) fact;
+                alerts.add(alert);
+                log.info("✅ VIRAL MOMENTUM ALERT: {}", alert.getMessage());
+            }
+
+            if (alerts.isEmpty()) {
+                log.warn("⚠️ No viral momentum detected. Checking intermediate facts...");
+
+                // Debug - proveri intermedijarne činjenice
+                long surgeFacts = kieSession.getObjects(o -> o instanceof FollowerEngagementSurge).size();
+                long trendFacts = kieSession.getObjects(o -> o instanceof NicheTrendActive).size();
+                log.warn("DEBUG: FollowerEngagementSurge facts: {}, NicheTrendActive facts: {}", surgeFacts, trendFacts);
+            }
+
+            return alerts;
+
+        } finally {
+            if (kieSession != null) {
+                kieSession.dispose();
+            }
+        }
+    }
+
+    /**
+     * Getter metoda za frontend - vraća aktivne alerte iz singleton sesije
+     */
+    public List<ViralMomentumAlert> getViralMomentumAlerts() {
+        List<ViralMomentumAlert> alerts = new ArrayList<>();
+
+        for (Object fact : cepKsession.getObjects(o -> o instanceof ViralMomentumAlert)) {
+            ViralMomentumAlert alert = (ViralMomentumAlert) fact;
+            alerts.add(alert);
+            // Obriši nakon čitanja da se ne vraćaju stalno isti alerti
+            cepKsession.delete(cepKsession.getFactHandle(alert));
+        }
+
+        return alerts;
+    }
 
 }

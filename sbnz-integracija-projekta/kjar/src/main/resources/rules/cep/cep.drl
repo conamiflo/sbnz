@@ -11,6 +11,8 @@ import com.ftn.sbnz.model.events.EngagementEvent.EngagementType;
 import com.ftn.sbnz.model.models.RelevantTrendAlert;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.model.models.Post;
+import com.ftn.sbnz.model.models.ViralMomentumAlert
+import com.ftn.sbnz.model.models.InterestMatcher;
 import java.util.Set; // Potreban import za Set
 
 // --- Deklaracije Događaja ---
@@ -73,97 +75,97 @@ rule "Analyze Relevance of a Trending Hashtag"
         insert(new RelevantTrendAlert(msg, $tag, reason));
 end
 
-
-rule "Detect Audience Saturation through Drop in Shares"
-    when
-        // Definišemo trenutno vreme kao referentnu tačku
-        $now: Long()
-
-        // KORAK 1: Pronađi JEDAN događaj objave da bi "uhvatio" kategoriju
-        // Ovim uspostavljamo kontekst za analizu
-        PostPublishedEvent($category: category)
-
-        // KORAK 2: Sada kada znamo kategoriju, izračunaj učestalost za nju
-        $frequency: Number(intValue > 10) from accumulate(
-            PostPublishedEvent(
-                category == $category, // Koristimo $category uhvaćen iznad
-                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000)
-            ),
-            count(1)
-        )
-
-        // Uslov 2: Proveri da li je opšti engagement (lajkovi+komentari) u opadajućem trendu
-        $olderEngagementCount: Number() from accumulate(
-            EngagementEvent(
-                postCategory == $category,
-                type != EngagementType.SHARE,
-                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000), // Period od pre 14 dana
-                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)  // do pre 7 dana
-            ),
-            count(1)
-        )
-        $olderPostCount: Number(intValue > 0) from accumulate(
-             PostPublishedEvent(
-                category == $category,
-                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000),
-                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)
-            ),
-            count(1)
-        )
-        $recentEngagementCount: Number() from accumulate(
-            EngagementEvent(
-                postCategory == $category,
-                type != EngagementType.SHARE,
-                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000) // Period u poslednjih 7 dana
-            ),
-            count(1)
-        )
-        $recentPostCount: Number(intValue > 0) from accumulate(
-            PostPublishedEvent(
-                category == $category,
-                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000)
-            ),
-            count(1)
-        )
-        // Uslov da je engagement opao za više od 20%
-        eval($recentEngagementCount.doubleValue() / $recentPostCount.doubleValue() < 0.8 * ($olderEngagementCount.doubleValue() / $olderPostCount.doubleValue()))
-
-        // Uslov 3: Proveri da li je broj deljenja (shares) značajno opao
-        $baselineShareCount: Number() from accumulate(
-            EngagementEvent(
-                postCategory == $category,
-                type == EngagementType.SHARE,
-                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000) // Prosek u poslednjih 60 dana
-            ),
-            count(1)
-        )
-        $baselinePostCount: Number(intValue > 0) from accumulate(
-            PostPublishedEvent(
-                category == $category,
-                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000)
-            ),
-            count(1)
-        )
-        $recentShareCount: Number() from accumulate(
-            EngagementEvent(
-                postCategory == $category,
-                type == EngagementType.SHARE,
-                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000) // Broj u poslednjih 14 dana
-            ),
-            count(1)
-        )
-        // Uslov da je broj deljenja pao za više od 50%
-        eval($recentShareCount.doubleValue() / $frequency.doubleValue() < 0.5 * ($baselineShareCount.doubleValue() / $baselinePostCount.doubleValue()))
-
-        // Osiguravamo da se alert ne kreira više puta za istu stvar
-        not (AudienceSaturationAlert(saturatedCategory == $category))
-    then
-        String msg = "UPOZORENJE: Zasićenje publike temom '" + $category +
-                     "'. Prevelika učestalost objava dovela je do pada engagementa i drastičnog pada broja deljenja. " +
-                     "PREPORUKA: Smanjite učestalost i uvedite novu, srodnu kategoriju.";
-        System.out.println("COMPLEX CEP RULE TRIGGERED: " + msg);
-        insert(new AudienceSaturationAlert(msg, $category));
-end
+//
+//rule "Detect Audience Saturation through Drop in Shares"
+//    when
+//        // Definišemo trenutno vreme kao referentnu tačku
+//        $now: Long()
+//
+//        // KORAK 1: Pronađi JEDAN događaj objave da bi "uhvatio" kategoriju
+//        // Ovim uspostavljamo kontekst za analizu
+//        PostPublishedEvent($category: category)
+//
+//        // KORAK 2: Sada kada znamo kategoriju, izračunaj učestalost za nju
+//        $frequency: Number(intValue > 10) from accumulate(
+//            PostPublishedEvent(
+//                category == $category, // Koristimo $category uhvaćen iznad
+//                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000)
+//            ),
+//            count(1)
+//        )
+//
+//        // Uslov 2: Proveri da li je opšti engagement (lajkovi+komentari) u opadajućem trendu
+//        $olderEngagementCount: Number() from accumulate(
+//            EngagementEvent(
+//                postCategory == $category,
+//                type != EngagementType.SHARE,
+//                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000), // Period od pre 14 dana
+//                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)  // do pre 7 dana
+//            ),
+//            count(1)
+//        )
+//        $olderPostCount: Number(intValue > 0) from accumulate(
+//             PostPublishedEvent(
+//                category == $category,
+//                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000),
+//                timestamp.getTime() < ($now - 7 * 24 * 60 * 60 * 1000)
+//            ),
+//            count(1)
+//        )
+//        $recentEngagementCount: Number() from accumulate(
+//            EngagementEvent(
+//                postCategory == $category,
+//                type != EngagementType.SHARE,
+//                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000) // Period u poslednjih 7 dana
+//            ),
+//            count(1)
+//        )
+//        $recentPostCount: Number(intValue > 0) from accumulate(
+//            PostPublishedEvent(
+//                category == $category,
+//                timestamp.getTime() > ($now - 7 * 24 * 60 * 60 * 1000)
+//            ),
+//            count(1)
+//        )
+//        // Uslov da je engagement opao za više od 20%
+//        eval($recentEngagementCount.doubleValue() / $recentPostCount.doubleValue() < 0.8 * ($olderEngagementCount.doubleValue() / $olderPostCount.doubleValue()))
+//
+//        // Uslov 3: Proveri da li je broj deljenja (shares) značajno opao
+//        $baselineShareCount: Number() from accumulate(
+//            EngagementEvent(
+//                postCategory == $category,
+//                type == EngagementType.SHARE,
+//                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000) // Prosek u poslednjih 60 dana
+//            ),
+//            count(1)
+//        )
+//        $baselinePostCount: Number(intValue > 0) from accumulate(
+//            PostPublishedEvent(
+//                category == $category,
+//                timestamp.getTime() > ($now - 60 * 24 * 60 * 60 * 1000)
+//            ),
+//            count(1)
+//        )
+//        $recentShareCount: Number() from accumulate(
+//            EngagementEvent(
+//                postCategory == $category,
+//                type == EngagementType.SHARE,
+//                timestamp.getTime() > ($now - 14 * 24 * 60 * 60 * 1000) // Broj u poslednjih 14 dana
+//            ),
+//            count(1)
+//        )
+//        // Uslov da je broj deljenja pao za više od 50%
+//        eval($recentShareCount.doubleValue() / $frequency.doubleValue() < 0.5 * ($baselineShareCount.doubleValue() / $baselinePostCount.doubleValue()))
+//
+//        // Osiguravamo da se alert ne kreira više puta za istu stvar
+//        not (AudienceSaturationAlert(saturatedCategory == $category))
+//    then
+//        String msg = "UPOZORENJE: Zasićenje publike temom '" + $category +
+//                     "'. Prevelika učestalost objava dovela je do pada engagementa i drastičnog pada broja deljenja. " +
+//                     "PREPORUKA: Smanjite učestalost i uvedite novu, srodnu kategoriju.";
+//        System.out.println("COMPLEX CEP RULE TRIGGERED: " + msg);
+//        insert(new AudienceSaturationAlert(msg, $category));
+//end
 
 //rule "Detect Engagement Drop"
 //    when
@@ -256,4 +258,59 @@ then
                  "PREPORUKA: Smanjite učestalost i uvedite novu, srodnu kategoriju.";
   System.out.println("COMPLEX CEP RULE TRIGGERED: " + msg);
   insert( new AudienceSaturationAlert($cat, msg) );
+end
+
+
+// ==================== VIRAL MOMENTUM WINDOW ====================
+
+declare FollowerEngagementSurge
+end
+
+declare NicheTrendActive
+    hashtag : String
+end
+
+// A) Detektuj povećanu aktivnost pratilaca
+rule "A_follower_engagement_surge"
+when
+    $recentEngRate : Number() from accumulate(
+        EngagementEvent(type == EngagementType.LIKE || type == EngagementType.COMMENT)
+            over window:time(2h),
+        count(1)
+    )
+    $baselineEngRate : Number(doubleValue > 0) from accumulate(
+        EngagementEvent(type == EngagementType.LIKE || type == EngagementType.COMMENT)
+            over window:time(24h),
+        count(1)
+    )
+    eval($recentEngRate.doubleValue() > 3 * ($baselineEngRate.doubleValue() / 12))
+    not FollowerEngagementSurge()
+then
+    System.out.println(">>> Rule A: Follower engagement SURGE detected!");
+    insert(new FollowerEngagementSurge());
+end
+
+// B) Detektuj trending topic relevantan za korisnika
+rule "B_niche_trend_detected"
+when
+    User($interests : interests)
+    TrendingHashtag($tag : tag)
+    eval(InterestMatcher.matchesInterest($interests, $tag))
+then
+    System.out.println(">>> Rule B: Niche trend detected for hashtag: " + $tag);
+    insert(new NicheTrendActive($tag));
+end
+
+// C) FINALNI SIGNAL - Viral Momentum Window
+rule "C_viral_momentum_window_detected"
+when
+    FollowerEngagementSurge()
+    NicheTrendActive($tag : hashtag)
+    not ViralMomentumAlert()
+then
+    String msg = "🚀 VIRAL MOMENTUM WINDOW DETECTED! " +
+                 "Your followers are highly active RIGHT NOW and '" + $tag +
+                 "' is trending in your niche. Perfect time to post!";
+    System.out.println(">>> Rule C (FINAL): " + msg);
+    insert(new ViralMomentumAlert(msg, $tag));
 end
