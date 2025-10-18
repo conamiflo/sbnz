@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
@@ -38,5 +39,42 @@ public class PostController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Post>> getPostsByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(postService.getPostsByUserId(userId));
+    }
+
+
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<PostResponseDTO> likePost(@PathVariable Long postId) {
+        try {
+            PostResponseDTO updatedPost = postService.incrementLikes(postId);
+            return ResponseEntity.ok(updatedPost);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/{postId}/share")
+    public ResponseEntity<PostResponseDTO> sharePost(@PathVariable Long postId) {
+        try {
+            PostResponseDTO updatedPost = postService.incrementShares(postId);
+            return ResponseEntity.ok(updatedPost);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/{postId}/comment")
+    public ResponseEntity<PostResponseDTO> commentPost(@PathVariable Long postId) {
+        try {
+            PostResponseDTO updatedPost = postService.incrementComments(postId);
+            return ResponseEntity.ok(updatedPost);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
