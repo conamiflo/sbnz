@@ -1,6 +1,8 @@
 package com.ftn.sbnz.service.services;
 
+import com.ftn.sbnz.model.dto.response.RecommendationDTO;
 import com.ftn.sbnz.model.dto.response.RecommendationResponse;
+import com.ftn.sbnz.model.dto.response.UserDTO;
 import com.ftn.sbnz.model.events.EngagementEvent;
 import com.ftn.sbnz.model.events.HashtagUsageEvent;
 import com.ftn.sbnz.model.events.PostPublishedEvent;
@@ -36,29 +38,41 @@ public class SocialMediaRecommendationService {
     }
 
     public RecommendationResponse generateAndPackageRecommendations() {
-        List<Recommendation> recommendations = this.generateRecommendationsInternal();
+        List<Recommendation> recommendationEntities = this.generateRecommendationsInternal();
+
+        List<RecommendationDTO> recommendationDTOs = recommendationEntities.stream()
+                .map(entity -> {
+                    User userEntity = entity.getUser();
+                    UserDTO userDTO = (userEntity != null)
+                            ? new UserDTO(userEntity.getId(), userEntity.getName())
+                            : null;
+
+                    return new RecommendationDTO(
+                            entity.getContent(),
+                            entity.getReasoning(),
+                            entity.getPriorityScore(),
+                            userDTO
+                    );
+                })
+                .collect(Collectors.toList());
 
         RecommendationResponse response = new RecommendationResponse();
         response.setSuccess(true);
-        response.setRecommendations(recommendations);
-        response.setTotalCount(recommendations.size());
-        response.setMessage("Successfully generated " + recommendations.size() + " recommendations");
+        response.setRecommendations(recommendationDTOs);
+        response.setTotalCount(recommendationDTOs.size());
+        response.setMessage("Successfully generated " + recommendationDTOs.size() + " recommendations");
 
-        Map<Long, List<Recommendation>> recommendationsByUser = recommendations.stream()
-                .collect(Collectors.groupingBy(r -> {
-                    if (r.getUser() != null && r.getUser().getId() != null) {
-                        return r.getUser().getId();
-                    }
-                    return -1L;
-                }));
+        Map<String, List<RecommendationDTO>> recommendationsByUser = recommendationDTOs.stream()
+                .filter(r -> r.getUser() != null && r.getUser().getId() != null)
+                .collect(Collectors.groupingBy(r -> r.getUser().getId().toString()));
         response.setRecommendationsByUser(recommendationsByUser);
 
-        double avgScore = recommendations.stream()
-                .mapToDouble(Recommendation::getPriorityScore)
+        double avgScore = recommendationDTOs.stream()
+                .mapToDouble(RecommendationDTO::getPriorityScore)
                 .average().orElse(0.0);
         response.setAveragePriorityScore(avgScore);
 
-        long highPriorityCount = recommendations.stream()
+        long highPriorityCount = recommendationDTOs.stream()
                 .filter(r -> r.getPriorityScore() > 6.0)
                 .count();
         response.setHighPriorityCount(highPriorityCount);

@@ -51,7 +51,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(new AntPathRequestMatcher("/api/auth/**")).permitAll()
-                        .requestMatchers(new AntPathRequestMatcher("/api/recommendations/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/api/**")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

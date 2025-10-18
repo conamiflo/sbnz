@@ -10,23 +10,18 @@ import com.ftn.sbnz.model.models.UserGoal;
 import java.time.LocalDateTime;
 import java.time.DayOfWeek;
 
-
-rule "Nivo 1 - Interest-Based Recommendation"
-when
-    $user: User($userId: id, $interests: interests)
-    $post: Post(userId != $userId, category memberOf $interests, engagementRate > 0.03)
-    not Recommendation(userId == $userId, postId == $post.id)
-then
-    Recommendation rec = new Recommendation($userId, $post.getId(),
-                                          $post.getContentType(),
-                                          $post.getCategory(),
-                                          $post.getContent());
-    rec.setPriorityScore(5.0);
-    rec.setReasoning("Matches user interests: " + $post.getCategory());
-    rec.setPredictedEngagement($post.getEngagementRate());
-    insert(rec);
-    System.out.println("[NIVO 1] Interest-based recommendation for user: " +
-                      $user.getName() + " -> " + $post.getCategory());
+rule "Content Recommendation Based on Interests"
+    when
+        $user: User($interests: interests)
+        $post: Post(user != $user, category memberOf $interests, engagementRate >= 0.0)
+        not Recommendation(user == $user, post == $post)
+    then
+        Recommendation rec = new Recommendation($user, $post);
+        rec.setPriorityScore(5.0);
+        rec.setReasoning("Matches user interests: " + $post.getCategory());
+        rec.setPredictedEngagement($post.getEngagementRate());
+        insert(rec);
+        System.out.println("Created interest-based recommendation for user: " + $user.getName() + " -> " + $post.getCategory() + " content");
 end
 
 rule "Nivo 2 - Video Bonus for Influencers"

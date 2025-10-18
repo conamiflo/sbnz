@@ -49,6 +49,11 @@ public class TemplateService {
             if (kb.getResults().hasMessages(Message.Level.ERROR)) {
                 throw new RuntimeException("Drools build errors:\n" + kb.getResults());
             }
+            for (Recommendation r : recommendations) {
+                kieSession.insert(r);
+                System.out.println("Inserted recommendation for user: " + r.getUser().getId()
+                        + " | Post: " + r.getPost().getId());
+            }
 
             KieContainer kieContainer = ks.newKieContainer(ks.getRepository().getDefaultReleaseId());
             KieSession kieSession = kieContainer.newKieSession();
