@@ -66,7 +66,11 @@ end
 rule "Nivo 5 - Personalization Based on Goals"
 when
     $goal: UserGoal($userId: userId, target == "engagement")
-    $rec: Recommendation(user.id == $userId, contentType == "video")
+    $rec: Recommendation(
+        user.id == $userId,
+        contentType == "video",
+        reasoning not contains "Engagement-focused boost"
+    )
 then
     $rec.increasePriorityScore(2.0, "Engagement-focused boost");
     update($rec);
@@ -76,7 +80,11 @@ end
 rule "Nivo 5b - Personalization for Reach Goals"
 when
     $goal: UserGoal($userId: userId, target == "reach")
-    $rec: Recommendation(user.id == $userId, contentType == "post")
+    $rec: Recommendation(
+        user.id == $userId,
+        contentType == "post",
+        reasoning not contains "Reach-focused boost"
+    )
 then
     $rec.increasePriorityScore(2.0, "Reach-focused boost");
     update($rec);
