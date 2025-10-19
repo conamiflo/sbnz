@@ -38,7 +38,7 @@
       <div *ngFor="let rec of recommendations" class="recommendation-item">
         <div class="rec-header">
           <span class="rec-user">{{ rec.user?.name || 'Suggestion' }}:</span>
-          <span class="rec-score">Score: {{ rec.priorityScore?.toFixed(1) }}</span>
+          <span class="rec-score">Score: {{ rec.priorityScore.toFixed(1) }}</span>
         </div>
         <p class="rec-content">{{ rec.content }}</p>
         <small class="rec-reason">Reason: {{ rec.reasoning }}</small>

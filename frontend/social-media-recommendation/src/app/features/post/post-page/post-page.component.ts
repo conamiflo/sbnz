@@ -12,23 +12,21 @@ import { RecommendationResponse } from '../../../core/models/recommendation-resp
   standalone: true,
   imports: [
     CommonModule,
-    PostCardComponent // Користимо PostCard за приказ обичних постова
-    // RecommendationCardComponent // Додај ако направиш компоненту за препоруке
+    PostCardComponent
   ],
   templateUrl: './post-page.component.html',
   styleUrls: ['./post-page.component.css']
 })
 export class PostPageComponent implements OnInit {
 
-  posts: Post[] = []; // Низ за обичне постове
-  recommendations: RecommendationDTO[] = []; // ✅ Низ за препоруке
+  posts: Post[] = [];
+  recommendations: RecommendationDTO[] = [];
 
-  isLoadingPosts = true; // Одвојено праћење учитавања
-  isLoadingRecs = true;  // Одвојено праћење учитавања
+  isLoadingPosts = true;
+  isLoadingRecs = true;
   errorPosts: string | null = null;
   errorRecs: string | null = null;
 
-  // ✅ Инјектујемо ОБА сервиса
   constructor(
     private postService: PostService,
     private recommendationService: RecommendationService

@@ -84,6 +84,17 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    public List<PostResponseDTO> getPostsByUsername(String username) {
+        userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+
+        List<Post> posts = postRepository.findAllByUserUsername(username);
+        return posts.stream()
+                .map(PostResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<PostResponseDTO> getAllPosts() {
         List<Post> posts = postRepository.findAllWithUser();
         return posts.stream()

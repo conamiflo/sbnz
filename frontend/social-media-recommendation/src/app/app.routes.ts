@@ -5,6 +5,7 @@ import {CreatePostComponent} from './features/post/create-post/create-post.compo
 import {AuthGuard} from './core/guards/auth.guard';
 import {PostPageComponent} from './features/post/post-page/post-page.component';
 import {GuestGuard} from './core/guards/guest.guard';
+import {ProfileComponent} from './features/user/profile/profile.component';
 
 export const routes: Routes = [
   {
@@ -12,21 +13,31 @@ export const routes: Routes = [
     redirectTo: '/login',
     pathMatch: 'full'
   },
-  { path: 'login', component: LoginComponent , canActivate: [GuestGuard]},
-  { path: 'register', component: RegisterComponent , canActivate: [GuestGuard]},
+  { path: 'login',
+    component: LoginComponent ,
+    canActivate: [GuestGuard]},
+  { path: 'register',
+    component: RegisterComponent ,
+    canActivate: [GuestGuard]},
   {
     path: 'register',
     component: RegisterComponent,
-  },
-  {
+  }, {
     path: 'create-post',
     component: CreatePostComponent,
     canActivate: [AuthGuard]
-  }
-  ,
+  },
   {
     path: 'posts',
     component: PostPageComponent,
     canActivate: [AuthGuard]
-  }
+  },
+  { path: 'profile',
+    component: ProfileComponent,
+    canActivate: [AuthGuard]
+  },
+  { path: 'profile/:username',
+    component: ProfileComponent,
+    canActivate: [AuthGuard]
+  },
 ];

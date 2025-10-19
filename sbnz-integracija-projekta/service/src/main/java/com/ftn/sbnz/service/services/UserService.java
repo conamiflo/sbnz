@@ -12,7 +12,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -66,4 +68,25 @@ public class UserService implements IUserService, UserDetailsService {
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + "USER"))
         );
     }
+
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUserDtoByUsername(String username) throws EntityNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+
+        return new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getAge(),
+                user.getLocation(),
+                user.getGender(),
+                user.getInterests(),
+                user.getCreatorType(),
+                user.getAudienceSize()
+        );
+
+    }
+
+
 }

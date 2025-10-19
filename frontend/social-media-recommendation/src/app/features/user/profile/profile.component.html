@@ -1,0 +1,42 @@
+<div class="profile-container">
+  <section class="profile-header">
+    <div *ngIf="isLoadingProfile">Loading profile...</div>
+    <div *ngIf="profileError" class="error-message">{{ profileError }}</div>
+
+    <div *ngIf="!isLoadingProfile && !profileError && userProfile" class="user-details-card">
+      <div class="user-avatar-large">{{ userProfile.username.charAt(0).toUpperCase() }}</div>
+      <h1>{{ userProfile.name }} (@{{ userProfile.username }})</h1>
+      <p *ngIf="userProfile.location">Location: {{ userProfile.location }}</p>
+      <p *ngIf="userProfile.age">Age: {{ userProfile.age }}</p>
+      <p *ngIf="userProfile.gender">Gender: {{ userProfile.gender }}</p>
+      <p *ngIf="userProfile.creatorType && userProfile.creatorType !== 'Personal'">
+        Creator Type: {{ userProfile.creatorType }}
+        <span *ngIf="userProfile.audienceSize"> (Audience: {{ userProfile.audienceSize }})</span>
+      </p>
+      <div *ngIf="userProfile.interests && userProfile.interests.length > 0" class="interests-list">
+        <strong>Interests:</strong>
+        <span *ngFor="let interest of userProfile.interests" class="interest-tag">{{ interest }}</span>
+      </div>
+      <button *ngIf="isOwnProfile" class="edit-profile-btn">Edit Profile</button>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <section class="user-posts-section">
+    <h2>Posts</h2>
+    <div *ngIf="isLoadingPosts">Loading posts...</div>
+    <div *ngIf="postsError" class="error-message">{{ postsError }}</div>
+
+    <div *ngIf="!isLoadingPosts && !postsError">
+      <div *ngIf="userPosts.length > 0; else noPosts">
+        <div *ngFor="let post of userPosts">
+          <app-post-card [post]="post"></app-post-card>
+        </div>
+      </div>
+      <ng-template #noPosts>
+        <div class="no-content-message">This user hasn't posted anything yet.</div>
+      </ng-template>
+    </div>
+  </section>
+</div>

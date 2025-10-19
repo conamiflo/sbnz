@@ -42,9 +42,20 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PostResponseDTO>> getPostsByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(postService.getPostsByUserId(userId));
+    @GetMapping("/user/id/{userId}")
+    public ResponseEntity<List<PostResponseDTO>> getPostsByUserId(@PathVariable Long userId) {
+        List<PostResponseDTO> postDTOs = postService.getPostsByUserId(userId);
+        return ResponseEntity.ok(postDTOs);
+    }
+
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<PostResponseDTO>> getPostsByUsername(@PathVariable String username) {
+        try {
+            List<PostResponseDTO> postDTOs = postService.getPostsByUsername(username);
+            return ResponseEntity.ok(postDTOs);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
