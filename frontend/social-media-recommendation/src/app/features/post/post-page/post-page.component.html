@@ -1,25 +1,54 @@
-<div class="post-page-container">
-  <h1>For You</h1>
+<div class="page-container">
+  <section class="column posts-column">
+    <h1>Post Feed</h1>
 
-  <div *ngIf="isLoading" class="loading-indicator">
-    Loading posts...
-  </div>
-
-  <div *ngIf="error" class="error-message">
-    {{ error }}
-    <button (click)="loadPosts()">Try Again</button> </div>
-
-  <div *ngIf="!isLoading && !error">
-    <div *ngIf="posts.length > 0; else noPosts">
-      <div *ngFor="let p of posts">
-        <app-post-card [post]="p"></app-post-card>
-      </div>
+    <div *ngIf="isLoadingPosts" class="loading-indicator">
+      Loading posts...
+    </div>
+    <div *ngIf="errorPosts" class="error-message">
+      {{ errorPosts }}
+      <button (click)="loadPosts()">Try Again</button>
     </div>
 
-    <ng-template #noPosts>
-      <div class="no-posts-message">
-        No posts available yet. Be the first to create one!
+    <div *ngIf="!isLoadingPosts && !errorPosts">
+      <div *ngIf="posts.length > 0; else noPosts">
+        <div *ngFor="let p of posts">
+          <app-post-card [post]="p"></app-post-card>
+        </div>
       </div>
+      <ng-template #noPosts>
+        <div class="no-content-message">No posts available yet. Be the first to create one!</div>
+      </ng-template>
+    </div>
+  </section>
+
+  <section class="column recommendations-column">
+  <h2>Recommendations For You</h2>
+
+  <div *ngIf="isLoadingRecs" class="loading-indicator">
+    Loading recommendations...
+  </div>
+  <div *ngIf="errorRecs" class="error-message">
+    {{ errorRecs }}
+    <button (click)="loadRecommendations()">Try Again</button>
+  </div>
+
+  <div *ngIf="!isLoadingRecs && !errorRecs">
+    <div *ngIf="recommendations.length > 0; else noRecommendations">
+      <div *ngFor="let rec of recommendations" class="recommendation-item">
+        <div class="rec-header">
+          <span class="rec-user">{{ rec.user?.name || 'Suggestion' }}:</span>
+          <span class="rec-score">Score: {{ rec.priorityScore?.toFixed(1) }}</span>
+        </div>
+        <p class="rec-content">{{ rec.content }}</p>
+        <small class="rec-reason">Reason: {{ rec.reasoning }}</small>
+      </div>
+    </div>
+    <ng-template #noRecommendations>
+      <div class="no-content-message">No recommendations available right now.</div>
     </ng-template>
   </div>
+</section>
+
+
 </div>

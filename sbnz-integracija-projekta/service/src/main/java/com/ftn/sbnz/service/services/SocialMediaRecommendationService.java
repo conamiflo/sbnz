@@ -38,7 +38,7 @@ public class SocialMediaRecommendationService {
     private final PostRepository postRepository;
 
     private final EngagementRepository engagementRepository;
-    private final KieSession cepKsession; // Singleton sesija za CEP
+    private final KieSession cepKsession;
 
     @Autowired
     public SocialMediaRecommendationService(
@@ -129,10 +129,7 @@ public class SocialMediaRecommendationService {
             }
         }
     }
-    /**
-     * Demonstrira ulančano CEP pravilo.
-     * Prvo pravilo detektuje trend, a drugo proverava njegovu relevantnost za datog korisnika.
-     */
+
     public List<RelevantTrendAlert> detectAndAnalyzeRelevantTrends(User user) {
         KieSession kieSession = kieContainer.newKieSession("cepKsession");
         try {
@@ -141,13 +138,11 @@ public class SocialMediaRecommendationService {
 
             kieSession.insert(user);
 
-            // Simulacija istorijske upotrebe heštega (baseline)
             for (int i = 0; i < 14; i++) {
                 kieSession.insert(new HashtagUsageEvent("#fitness"));
                 clock.advanceTime(12, TimeUnit.HOURS);
             }
 
-            // Simulacija naglog skoka popularnosti
             log.info("Simulating hashtag spike for #fitness...");
             for (int i = 0; i < 40; i++) {
                 kieSession.insert(new HashtagUsageEvent("#fitness"));
@@ -167,10 +162,6 @@ public class SocialMediaRecommendationService {
         }
     }
 
-    /**
-     * Demonstrira kompleksno CEP pravilo za detekciju zasićenja publike.
-     * Simulira scenario gde korisnik prečesto objavljuje, što dovodi do pada engagementa i deljenja.
-     */
 //    public Optional<AudienceSaturationAlert> detectAudienceSaturation() {
 //        KieSession kieSession = kieContainer.newKieSession("cepKsession");
 //        try {
@@ -217,21 +208,17 @@ public class SocialMediaRecommendationService {
 //        }
 //    }
 
-    @Transactional(readOnly = true) // Osigurava da sesija ostane otvorena za LAZY učitavanje
+    @Transactional(readOnly = true)
     public List<AudienceSaturationAlert> analyzeRealDataOnDemand() {
         log.info("Pokretanje analize stvarnih podataka na zahtev...");
 
-        // 1. Definiši vremenski prozor za analizu (pravilo gleda do 60 dana unazad)
         LocalDateTime sixtyDaysAgo = LocalDateTime.now().minusDays(60);
 
-        // 2. Dohvati sve relevantne postove i engagemente iz baze
         List<Post> recentPosts = postRepository.findByPublishTimeAfter(sixtyDaysAgo);
         List<Engagement> recentEngagements = engagementRepository.findByTimestampAfter(sixtyDaysAgo);
 
         log.info("Analiziram {} postova i {} engagement događaja iz baze.", recentPosts.size(), recentEngagements.size());
 
-        // 3. Ubaci sve kao događaje u glavnu CEP sesiju
-        // (Pretpostavka je da cepKsession radi u `fireUntilHalt` modu)
         for (Post post : recentPosts) {
             Date d = Date.from(post.getPublishTime().atZone(ZoneId.systemDefault()).toInstant());
             cepKsession.insert(new PostPublishedEvent(post.getId(), post.getCategory(), d));
@@ -243,19 +230,12 @@ public class SocialMediaRecommendationService {
             }
         }
 
-        // 4. Ubaci "sada" da bi se pravila koja porede sa $now aktivirala
         cepKsession.insert(System.currentTimeMillis());
 
-        // 5. Vrati rezultat tako što pokupiš alerte iz sesije
         return getAudienceSaturationAlerts();
     }
 
 
-    /**
-     * "Get" metoda za frontend.
-     * Proverava da li u glavnoj CEP sesiji postoje aktivni alerti,
-     * vraća ih i briše iz sesije da se ne bi ponovo prikazivali.
-     */
     public List<AudienceSaturationAlert> getAudienceSaturationAlerts() {
         List<AudienceSaturationAlert> alerts = new ArrayList<>();
 
@@ -279,14 +259,11 @@ public class SocialMediaRecommendationService {
             String category = "vezbe";
             log.info("--- Pokretanje NOVE simulacije za CEP pravila A, B, C, D ---");
 
-            // SAT POČINJE OD 0 (ili neke početne tačke)
             long startTime = clock.getCurrentTime();
 
-            // KORAK 1: Ubaci baseline događaje (30-7 dana unazad)
             log.info("Simuliram baseline (od pre 30d do pre 7d)...");
             for (int i = 0; i < 5; i++) {
                 long postId = 100L + i;
-                // Postavi sat na odgovarajuće vreme
                 long eventTime = startTime + TimeUnit.DAYS.toMillis(i * 5);
                 clock.advanceTime(TimeUnit.DAYS.toMillis(i * 5) - (i > 0 ? TimeUnit.DAYS.toMillis((i-1) * 5) : 0), TimeUnit.MILLISECONDS);
 
@@ -297,10 +274,8 @@ public class SocialMediaRecommendationService {
                 }
             }
 
-            // Pomeri sat na trenutak pre 7 dana od kraja
             clock.advanceTime(TimeUnit.DAYS.toMillis(7), TimeUnit.MILLISECONDS);
 
-            // KORAK 2: Ubaci recent događaje (zadnjih 7 dana)
             log.info("Simuliram A (Overposting u 48h) i B (Recent Share Drop u 7d)...");
             for (int i = 0; i < 8; i++) {
                 long postId = 200L + i;
@@ -311,11 +286,9 @@ public class SocialMediaRecommendationService {
                 testSession.insert(new EngagementEvent(postId, category, EngagementEvent.EngagementType.SHARE, t));
             }
 
-            // KORAK 3: Trenutno vreme je SADA automatski
             long now = clock.getCurrentTime();
             testSession.insert(now);
 
-            // KORAK 4: Pokreni pravila
             log.info("Pokrecem pravila...");
             int rulesFired = testSession.fireAllRules();
             log.info("Broj aktiviranih pravila: {}", rulesFired);
@@ -349,13 +322,10 @@ public class SocialMediaRecommendationService {
             kieSession.insert(user);
             log.info("=== Starting Viral Momentum Window detection for user: {} ===", user.getName());
 
-            // SAT POČINJE OD 0
             long startTime = clock.getCurrentTime();
 
-            // KORAK 1: Simuliraj BASELINE aktivnost (rasporedi kroz 24h)
             log.info("Step 1: Simulating baseline follower activity (24h)...");
             for (int i = 0; i < 24; i++) {
-                // Pomeri sat na sledeći sat
                 if (i > 0) {
                     clock.advanceTime(1, TimeUnit.HOURS);
                 }
@@ -366,10 +336,9 @@ public class SocialMediaRecommendationService {
             }
             log.info("Baseline: 48 engagements over 24h (current time: {})", new Date(clock.getCurrentTime()));
 
-            // KORAK 2: Simuliraj SPIKE u aktivnosti (koncentrisano u 2h)
             log.info("Step 2: Simulating engagement SPIKE (2h window)...");
             for (int i = 0; i < 25; i++) {
-                clock.advanceTime(4, TimeUnit.MINUTES); // Pomeri sat napred
+                clock.advanceTime(4, TimeUnit.MINUTES);
 
                 Date t = new Date(clock.getCurrentTime());
                 EngagementEvent.EngagementType type = (i % 2 == 0)
@@ -379,15 +348,12 @@ public class SocialMediaRecommendationService {
             }
             log.info("Spike: 25 engagements in last 2h (current time: {})", new Date(clock.getCurrentTime()));
 
-            // KORAK 3: Simuliraj trending hashtag
             log.info("Step 3: Simulating trending hashtag relevant to user interests...");
             String relevantHashtag = "#" + (user.getInterests().isEmpty() ? "fitness" : user.getInterests().get(0));
 
-            // Vrati sat unazad za baseline hashtag-a
             long currentTime = clock.getCurrentTime();
             long sevenDaysAgo = currentTime - TimeUnit.DAYS.toMillis(7);
 
-            // Simuliraj baseline za hashtag (raspodeljeno kroz 7 dana)
             for (int i = 0; i < 14; i++) {
                 long eventTime = sevenDaysAgo + (i * TimeUnit.HOURS.toMillis(12));
                 HashtagUsageEvent hashtagEvent = new HashtagUsageEvent(relevantHashtag);
@@ -395,7 +361,6 @@ public class SocialMediaRecommendationService {
                 kieSession.insert(hashtagEvent);
             }
 
-            // Spike za hashtag (poslednje 6h)
             log.info("Creating hashtag spike for: {}", relevantHashtag);
             long sixHoursAgo = currentTime - TimeUnit.HOURS.toMillis(6);
             for (int i = 0; i < 40; i++) {
@@ -405,22 +370,19 @@ public class SocialMediaRecommendationService {
                 kieSession.insert(hashtagEvent);
             }
 
-            // KORAK 4: Fire all rules
             log.info("Step 4: Firing all CEP rules...");
             int rulesFired = kieSession.fireAllRules();
             log.info("Total rules fired: {}", rulesFired);
 
-            // KORAK 5: Collect alerts
             for (Object fact : kieSession.getObjects(o -> o instanceof ViralMomentumAlert)) {
                 ViralMomentumAlert alert = (ViralMomentumAlert) fact;
                 alerts.add(alert);
-                log.info("✅ VIRAL MOMENTUM ALERT: {}", alert.getMessage());
+                log.info("VIRAL MOMENTUM ALERT: {}", alert.getMessage());
             }
 
             if (alerts.isEmpty()) {
-                log.warn("⚠️ No viral momentum detected. Checking intermediate facts...");
+                log.warn("No viral momentum detected. Checking intermediate facts...");
 
-                // Debug - proveri intermedijarne činjenice
                 long surgeFacts = kieSession.getObjects(o -> o instanceof FollowerEngagementSurge).size();
                 long trendFacts = kieSession.getObjects(o -> o instanceof NicheTrendActive).size();
                 log.warn("DEBUG: FollowerEngagementSurge facts: {}, NicheTrendActive facts: {}", surgeFacts, trendFacts);
@@ -435,16 +397,12 @@ public class SocialMediaRecommendationService {
         }
     }
 
-    /**
-     * Getter metoda za frontend - vraća aktivne alerte iz singleton sesije
-     */
     public List<ViralMomentumAlert> getViralMomentumAlerts() {
         List<ViralMomentumAlert> alerts = new ArrayList<>();
 
         for (Object fact : cepKsession.getObjects(o -> o instanceof ViralMomentumAlert)) {
             ViralMomentumAlert alert = (ViralMomentumAlert) fact;
             alerts.add(alert);
-            // Obriši nakon čitanja da se ne vraćaju stalno isti alerti
             cepKsession.delete(cepKsession.getFactHandle(alert));
         }
 
@@ -453,7 +411,7 @@ public class SocialMediaRecommendationService {
 
     public List<RelevantTrendAlert> getRelevantTrendAlerts() {
         List<RelevantTrendAlert> alerts = new ArrayList<>();
-        List<FactHandle> handlesToDelete = new ArrayList<>(); // Користи FactHandle за безбедно брисање
+        List<FactHandle> handlesToDelete = new ArrayList<>();
 
         // Пронађи све RelevantTrendAlert објекте користећи FactHandle
         for (FactHandle handle : cepKsession.getFactHandles(o -> o instanceof RelevantTrendAlert)) {
@@ -461,11 +419,10 @@ public class SocialMediaRecommendationService {
             if (fact instanceof RelevantTrendAlert) {
                 RelevantTrendAlert alert = (RelevantTrendAlert) fact;
                 alerts.add(alert);
-                handlesToDelete.add(handle); // Додај хендл за касније брисање
+                handlesToDelete.add(handle);
             }
         }
 
-        // Обриши алерте из сесије НАКОН што си их све покупио
         for (FactHandle handle : handlesToDelete) {
             cepKsession.delete(handle);
         }
