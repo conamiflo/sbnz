@@ -4,6 +4,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { CepService } from '../../core/services/cep.service'; // Ажурирано име сервиса
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { TemplateService } from '../../core/services/template.service';
+import { BackwardService } from '../../core/services/backward.service';
 
 @Component({
   selector: 'app-nav-bar',
@@ -23,12 +25,17 @@ export class NavBarComponent implements OnInit, OnDestroy {
   trendSimLoading = false;
   saturationSimLoading = false;
   viralSimLoading = false;
+  templateLoading = false;
+  backwardLoading = false;
+  connectedLoading = false;
   private simSubscription: Subscription = new Subscription();
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    private cepDemoService: CepService // Ажурирано име
+    private cepDemoService: CepService,
+    private templateService: TemplateService,
+    private backwardService: BackwardService
   ) {}
 
   ngOnInit(): void {
@@ -112,4 +119,70 @@ export class NavBarComponent implements OnInit, OnDestroy {
       }
     });
   }
+  
+  runTemplateExcel(): void {
+    if (!this.isLoggedIn) {
+      alert("You must be logged in to run this.");
+      return;
+    }
+
+    this.templateLoading = true;
+    this.templateService.generateFromExcel().subscribe({
+      next: res => {
+        this.templateLoading = false;
+        console.log("Template result:", res);
+        alert('Template result:\n' + res);
+      },
+      error: err => {
+        this.templateLoading = false;
+        console.error("Template error:", err);
+        alert('Template error:\n' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  runBackwardRecommendations(): void {
+    if (!this.isLoggedIn) {
+      alert("You must be logged in to run this.");
+      return;
+    }
+
+    const userId = 1; // or get from authService if available
+    this.backwardLoading = true;
+    this.backwardService.getRecommendations(userId).subscribe({
+      next: res => {
+        this.backwardLoading = false;
+        console.log("Backward recommendations:", res);
+        alert('Backward Recommendations:\n' + JSON.stringify(res, null, 2));
+      },
+      error: err => {
+        this.backwardLoading = false;
+        console.error("Backward error:", err);
+        alert('Backward error:\n' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  runConnectedContent(): void {
+    if (!this.isLoggedIn) {
+      alert("You must be logged in to run this.");
+      return;
+    }
+
+    const userId = 1; // or dynamic
+    this.connectedLoading = true;
+    this.backwardService.getConnectedContent(userId).subscribe({
+      next: res => {
+        this.connectedLoading = false;
+        console.log("Connected content:", res);
+        alert('Connected content:\n' + JSON.stringify(res, null, 2));
+      },
+      error: err => {
+        this.connectedLoading = false;
+        console.error("Connected content error:", err);
+        alert('Connected content error:\n' + (err.error?.message || err.message));
+      }
+    });
+  }
+
 }

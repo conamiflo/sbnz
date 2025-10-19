@@ -22,6 +22,27 @@
         <button class="cep-demo-btn" (click)="runViralMomentumSimulation()" [disabled]="viralSimLoading" title="Simulate Viral Momentum CEP Rule">
           {{ viralSimLoading ? '...' : 'Sim Viral' }}
         </button>
+
+        <button class="cep-demo-btn" 
+                (click)="runTemplateExcel()" 
+                [disabled]="templateLoading" 
+                title="Generate rules from Excel (Template)">
+          {{ templateLoading ? '...' : 'Run Template' }}
+        </button>
+
+        <button class="cep-demo-btn" 
+                (click)="runBackwardRecommendations()" 
+                [disabled]="backwardLoading" 
+                title="Run Backward Chaining Recommendations">
+          {{ backwardLoading ? '...' : 'Run Backward' }}
+        </button>
+
+        <button class="cep-demo-btn" 
+                (click)="runConnectedContent()" 
+                [disabled]="connectedLoading" 
+                title="Run Connected Content Backward Rule">
+          {{ connectedLoading ? '...' : 'Run Connected' }}
+        </button>
       </ng-container>
 
       <button *ngIf="isLoggedIn" class="logout-btn" (click)="logout()">
