@@ -119,7 +119,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   runTemplateExcel(): void {
     if (!this.isLoggedIn) {
       alert("You must be logged in to run this.");
@@ -147,7 +147,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const userId = 1; // or get from authService if available
+    const userId = 2;
     this.backwardLoading = true;
     this.backwardService.getRecommendations(userId).subscribe({
       next: res => {
@@ -169,7 +169,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const userId = 1; // or dynamic
+    const userId = 2;
     this.connectedLoading = true;
     this.backwardService.getConnectedContent(userId).subscribe({
       next: res => {

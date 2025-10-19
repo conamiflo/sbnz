@@ -1,5 +1,7 @@
 package com.ftn.sbnz.service.controllers;
 
+import com.ftn.sbnz.model.dto.response.RecommendationBackwardDTO;
+import com.ftn.sbnz.model.mappers.RecommendationMapper;
 import com.ftn.sbnz.model.models.Post;
 import com.ftn.sbnz.model.models.Recommendation;
 import com.ftn.sbnz.model.models.User;
@@ -28,27 +30,31 @@ public class BackwardChainingController {
     private PostRepository postRepository;
 
     @GetMapping("/recommendations/{userId}")
-    public ResponseEntity<List<Recommendation>> getRecommendations(@PathVariable Long userId) {
+    public ResponseEntity<List<RecommendationBackwardDTO>> getRecommendations(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Post> posts = postRepository.findAll();
 
-        List<Recommendation> recommendations =
-                backwardChainingService.findRelevantContent(user, posts);
+        List<RecommendationBackwardDTO> recommendations = backwardChainingService.findRelevantContent(user, posts)
+                .stream()
+                .map(RecommendationMapper::toDto)
+                .toList();
 
         return ResponseEntity.ok(recommendations);
     }
 
     @GetMapping("/connected/{userId}")
-    public ResponseEntity<List<Recommendation>> getConnectedContent(@PathVariable Long userId) {
+    public ResponseEntity<List<RecommendationBackwardDTO>> getConnectedContent(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Post> posts = postRepository.findAll();
 
-        List<Recommendation> recommendations =
-                backwardChainingService.findConnectedContent(user, posts);
+        List<RecommendationBackwardDTO> recommendations = backwardChainingService.findConnectedContent(user, posts)
+                .stream()
+                .map(RecommendationMapper::toDto)
+                .toList();
 
         return ResponseEntity.ok(recommendations);
     }
