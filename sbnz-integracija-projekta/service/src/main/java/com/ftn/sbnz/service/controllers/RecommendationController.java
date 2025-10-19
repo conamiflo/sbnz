@@ -132,9 +132,9 @@ public class RecommendationController {
         post3.setId(103L);
 
         // Trending hashtags
-        TrendingHashtag trend1 = new TrendingHashtag("#style");
-        TrendingHashtag trend2 = new TrendingHashtag("#fitness");
-        TrendingHashtag trend3 = new TrendingHashtag("#technology");
+        TrendingHashtag trend1 = new TrendingHashtag("#style",75);
+        TrendingHashtag trend2 = new TrendingHashtag("#fitness", 90);
+        TrendingHashtag trend3 = new TrendingHashtag("#technology",80);
 
         // Insert into session - ORDER MATTERS!
         session.insert(targetUser);

@@ -1,7 +1,10 @@
 package com.ftn.sbnz.model.models;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
+@Data
 public class TrendingHashtag implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -9,31 +12,9 @@ public class TrendingHashtag implements Serializable {
 
     private Integer popularity;
 
-    public TrendingHashtag(String tag) {
+    public TrendingHashtag(String tag, Integer popularity) {
         this.tag = tag;
-    }
-
-    // Getters and Setters
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-
-
-    public Integer getPopularity() {
-        return popularity;
-    }
-
-    public void setPopularity(Integer popularity) {
         this.popularity = popularity;
     }
 
-    @Override
-    public String toString() {
-        return "TrendingHashtag{tag='" + tag + "'}";
-    }
 }
