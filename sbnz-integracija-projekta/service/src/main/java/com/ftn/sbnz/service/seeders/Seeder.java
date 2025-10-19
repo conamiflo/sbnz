@@ -10,13 +10,11 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 @Component
-public class Seeder implements CommandLineRunner  {
+public class Seeder implements CommandLineRunner {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final Random random = new Random();
 
     public Seeder(PostRepository postRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
@@ -28,7 +26,7 @@ public class Seeder implements CommandLineRunner  {
 //        seedPosts();
     }
 
-    private void seedPosts() {
+    private void seedTemplateBackward() {
         if (postRepository.count() > 0) {
             System.out.println("Posts already seeded.");
             return;
@@ -40,79 +38,122 @@ public class Seeder implements CommandLineRunner  {
             return;
         }
 
+        // Get specific users (assuming IDs 1 and 3 exist)
+        User user1 = userRepository.findById(1L).orElse(users.get(0));
+        User user3 = userRepository.findById(3L).orElse(users.size() > 1 ? users.get(1) : users.get(0));
+
         List<Post> posts = Arrays.asList(
-                new Post(randomUser(users),
+                // Post 1
+                new Post(user1,
                         "10 Tips for Better Photography",
                         "image",
                         "Photography",
                         Arrays.asList("#photography", "#tips", "#creativity"),
-                        LocalDateTime.now().minusDays(2),
-                        120, 45, 30, 1000, 0),
+                        LocalDateTime.parse("2025-10-13T14:05:39.750940"),
+                        120, 30, 45, 1000, 0.195),
 
-                new Post(randomUser(users),
+                // Post 2
+                new Post(user1,
                         "Top 5 Healthy Recipes for Busy People",
                         "video",
                         "Food",
                         Arrays.asList("#health", "#food", "#recipes"),
-                        LocalDateTime.now().minusDays(4),
-                        200, 70, 40, 1500, 0),
+                        LocalDateTime.parse("2025-10-11T14:05:39.750940"),
+                        200, 40, 70, 1500, 0.20666666666666667),
 
-                new Post(randomUser(users),
+                // Post 3
+                new Post(user1,
                         "Best Exercises for Core Strength",
                         "image",
                         "Fitness",
                         Arrays.asList("#fitness", "#workout", "#core"),
-                        LocalDateTime.now().minusDays(1),
-                        250, 100, 80, 1800, 0),
+                        LocalDateTime.parse("2025-10-14T14:05:39.750940"),
+                        250, 80, 100, 1800, 0.2388888888888889),
 
-                new Post(randomUser(users),
+                // Post 4
+                new Post(user1,
                         "Exploring the Streets of Paris – My Travel Diary",
                         "video",
                         "Travel",
                         Arrays.asList("#travel", "#paris", "#adventure"),
-                        LocalDateTime.now().minusDays(6),
-                        320, 150, 120, 2500, 0),
+                        LocalDateTime.parse("2025-10-09T14:05:39.750940"),
+                        320, 120, 150, 2500, 0.236),
 
-                new Post(randomUser(users),
+                // Post 5
+                new Post(user1,
                         "How AI Is Changing the World",
                         "text",
                         "Technology",
                         Arrays.asList("#AI", "#tech", "#innovation"),
-                        LocalDateTime.now().minusDays(3),
-                        500, 200, 100, 4000, 0),
+                        LocalDateTime.parse("2025-10-12T14:05:39.750940"),
+                        500, 100, 200, 4000, 0.2),
 
-                new Post(randomUser(users),
+                // Post 6
+                new Post(user1,
                         "Interior Design Trends for 2025",
                         "image",
                         "Design",
                         Arrays.asList("#design", "#home", "#interior"),
-                        LocalDateTime.now().minusDays(5),
-                        180, 65, 25, 1300, 0),
+                        LocalDateTime.parse("2025-10-10T14:05:39.750940"),
+                        180, 25, 65, 1300, 0.2076923076923077),
 
-                new Post(randomUser(users),
+                // Post 7
+                new Post(user1,
                         "Why You Should Read More Books",
                         "text",
                         "Education",
                         Arrays.asList("#reading", "#learning", "#motivation"),
-                        LocalDateTime.now().minusDays(8),
-                        90, 25, 10, 900, 0),
+                        LocalDateTime.parse("2025-10-07T14:05:39.750940"),
+                        90, 10, 25, 900, 0.1388888888888889),
 
-                new Post(randomUser(users),
+                // Post 8
+                new Post(user1,
                         "The Future of Electric Cars",
                         "video",
                         "Automotive",
                         Arrays.asList("#EV", "#cars", "#future"),
-                        LocalDateTime.now().minusDays(7),
-                        410, 180, 75, 3500, 0)
+                        LocalDateTime.parse("2025-10-08T14:05:39.750940"),
+                        410, 75, 180, 3500, 0.19),
+
+                // Post 9 - User 3
+                new Post(user3,
+                        "Top 10 AI breakthroughs in 2025",
+                        "Article",
+                        "Technology",
+                        Arrays.asList("AI", "Innovation", "TechNews"),
+                        LocalDateTime.parse("2025-10-18T14:55:11.727832"),
+                        0, 0, 0, 0, 0),
+
+                // Post 10 - User 3
+                new Post(user3,
+                        "Highlights from last night's football match",
+                        "Video",
+                        "Sports",
+                        Arrays.asList("Football", "Highlights", "SportsUpdate"),
+                        LocalDateTime.parse("2025-10-18T14:55:20.571926"),
+                        0, 0, 0, 0, 0),
+
+                // Post 11 - User 3 (duplicate)
+                new Post(user3,
+                        "Highlights from last night's football match",
+                        "Video",
+                        "Sports",
+                        Arrays.asList("Football", "Highlights", "SportsUpdate"),
+                        LocalDateTime.parse("2025-10-18T14:55:23.567069"),
+                        0, 0, 0, 0, 0),
+
+                // Post 12 - User 3
+                new Post(user3,
+                        "5 Easy Pasta Recipes for Beginners",
+                        "Article",
+                        "Cooking",
+                        Arrays.asList("Cooking", "Recipes", "Foodie"),
+                        LocalDateTime.parse("2025-10-18T14:55:37.592251"),
+                        0, 0, 0, 0, 0)
         );
 
-        posts.forEach(Post::calculateEngagementRate);
         postRepository.saveAll(posts);
 
         System.out.println("✅ Seeded " + posts.size() + " posts successfully.");
-    }
-
-    private User randomUser(List<User> users) {
-        return users.get(random.nextInt(users.size()));
     }
 }
