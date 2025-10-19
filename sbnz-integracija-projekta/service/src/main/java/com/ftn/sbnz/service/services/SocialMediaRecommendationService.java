@@ -115,50 +115,34 @@ public class SocialMediaRecommendationService {
                 kieSession.insert(post);
             }
 
-            // ===== ADD TRENDING HASHTAGS to trigger Level 3 =====
-            TrendingHashtag trend1 = new TrendingHashtag("AI");
-            TrendingHashtag trend2 = new TrendingHashtag("Innovation");
-            TrendingHashtag trend3 = new TrendingHashtag("TechNews");
-            TrendingHashtag trend4 = new TrendingHashtag("Football");
-            TrendingHashtag trend5 = new TrendingHashtag("Highlights");
-            TrendingHashtag trend6 = new TrendingHashtag("SportsUpdate");
+            log.info("Inserting TrendingHashtag facts with popularity...");
+            kieSession.insert(new TrendingHashtag("AI", 85));
+            kieSession.insert(new TrendingHashtag("Java", 75));
+            kieSession.insert(new TrendingHashtag("Spring", 72));
+            kieSession.insert(new TrendingHashtag("fitness", 90));
+            // Примери са мањом популарношћу (неће активирати правило Nivo 3)
+            kieSession.insert(new TrendingHashtag("cooking", 50));
+            kieSession.insert(new TrendingHashtag("travel", 65));
 
-            kieSession.insert(trend1);
-            kieSession.insert(trend2);
-            kieSession.insert(trend3);
-            kieSession.insert(trend4);
-            kieSession.insert(trend5);
-            kieSession.insert(trend6);
 
-            // ===== ADD USER GOALS to trigger Level 5 and 5b =====
+            log.info("Inserting UserGoal facts...");
             for (User user : users) {
                 if (user.getId() != null) {
-                    // Create an engagement goal for each user
-                    UserGoal engagementGoal = new UserGoal();
-                    engagementGoal.setUserId(user.getId());
-                    engagementGoal.setTarget("engagement");
-                    kieSession.insert(engagementGoal);
-
-                    // Optionally add a reach goal as well
-                    UserGoal reachGoal = new UserGoal();
-                    reachGoal.setUserId(user.getId());
-                    reachGoal.setTarget("reach");
-                    kieSession.insert(reachGoal);
+                    kieSession.insert(new UserGoal(user.getId(), "engagement"));
+                    kieSession.insert(new UserGoal(user.getId(), "reach"));
                 }
             }
 
-            System.out.println("=== Drools Session Facts ===");
-            System.out.println("Users inserted: " + users.size());
-            System.out.println("Posts inserted: " + posts.size());
-            System.out.println("Trending hashtags inserted: 6");
-            System.out.println("User goals inserted: " + (users.size() * 2));
-            System.out.println("============================");
+            log.info("=== Drools Session Facts Before Firing ===");
+            log.info("Users inserted: {}", users.size());
+            log.info("Posts inserted: {}", posts.size());
+            log.info("Trending hashtags inserted: 6");
+            log.info("User goals inserted: {}", users.size() * 2);
+            log.info("==========================================");
 
-            // Fire all rules
             int rulesFired = kieSession.fireAllRules();
-            System.out.println("Total rules fired: " + rulesFired);
+            log.info("Total rules fired in fwKsession: {}", rulesFired);
 
-            // Collect recommendations
             List<Recommendation> recommendations = new ArrayList<>();
             for (Object fact : kieSession.getObjects(o -> o instanceof Recommendation)) {
                 recommendations.add((Recommendation) fact);
@@ -166,8 +150,8 @@ public class SocialMediaRecommendationService {
 
             recommendations.sort(Comparator.comparing(Recommendation::getPriorityScore).reversed());
 
-            System.out.println("Total recommendations created: " + recommendations.size());
-            System.out.println("============================");
+            log.info("Total recommendations collected after rules: {}", recommendations.size()); // Користи логер
+            log.info("==========================================");
 
             return recommendations;
 
@@ -209,52 +193,6 @@ public class SocialMediaRecommendationService {
             }
         }
     }
-
-//    public Optional<AudienceSaturationAlert> detectAudienceSaturation() {
-//        KieSession kieSession = kieContainer.newKieSession("cepKsession");
-//        try {
-//            SessionPseudoClock clock = kieSession.getSessionClock();
-//            String saturatedCategory = "vezbe"; // uskladi sa DRL-om!
-//
-//            // ---- BASELINE: rasprši kroz ~70 dana, SHARE kao metrika ----
-//            for (int i = 0; i < 14; i++) {
-//                long postId = 100L + i;
-//                Date t = new Date(clock.getCurrentTime());
-//                kieSession.insert(new PostPublishedEvent(postId, saturatedCategory, t));
-//                for (int j = 0; j < 6; j++) {
-//                    kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.SHARE, t));
-//                }
-//                clock.advanceTime(5, TimeUnit.DAYS);
-//            }
-//
-//            log.info("Simulating audience saturation (drop in SHARE) for category '{}'...", saturatedCategory);
-//
-//            // ---- RECENT: poslednjih 7 dana, drastično manje SHARE-ova ----
-//            for (int i = 0; i < 7; i++) {
-//                long postId = 200L + i;
-//                Date t = new Date(clock.getCurrentTime());
-//                kieSession.insert(new PostPublishedEvent(postId, saturatedCategory, t));
-//                for (int j = 0; j < 1; j++) {
-//                    kieSession.insert(new EngagementEvent(postId, saturatedCategory, EngagementEvent.EngagementType.SHARE, t));
-//                }
-//                clock.advanceTime(1, TimeUnit.DAYS);
-//            }
-//
-//            // probudi pravila, ako koristiš timer/prozore
-//            kieSession.insert(clock.getCurrentTime());
-//            kieSession.fireAllRules();
-//
-//            return kieSession.getObjects(o -> o instanceof AudienceSaturationAlert)
-//                    .stream()
-//                    .map(o -> (AudienceSaturationAlert) o)
-//                    .findFirst();
-//
-//        } finally {
-//            if (kieSession != null) {
-//                kieSession.dispose();
-//            }
-//        }
-//    }
 
     @Transactional(readOnly = true)
     public List<AudienceSaturationAlert> analyzeRealDataOnDemand() {

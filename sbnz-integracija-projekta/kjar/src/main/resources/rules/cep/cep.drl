@@ -1,6 +1,5 @@
 package cep;
 
-// Svi potrebni importi
 import com.ftn.sbnz.model.events.HashtagUsageEvent;
 import com.ftn.sbnz.model.models.TrendingHashtag;
 import com.ftn.sbnz.model.events.EngagementEvent;
@@ -11,12 +10,10 @@ import com.ftn.sbnz.model.events.EngagementEvent.EngagementType;
 import com.ftn.sbnz.model.models.RelevantTrendAlert;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.model.models.Post;
-import com.ftn.sbnz.model.models.ViralMomentumAlert
+import com.ftn.sbnz.model.models.ViralMomentumAlert;
 import com.ftn.sbnz.model.models.InterestMatcher;
-import java.util.Set; // Potreban import za Set
+import java.util.Set;
 
-// --- Deklaracije Događaja ---
-// Svaka klasa koja se koristi kao događaj u CEP-u mora biti deklarisana.
 
 declare HashtagUsageEvent
     @role(event)
@@ -26,7 +23,6 @@ declare EngagementEvent
     @role(event)
 end
 
-// DODATA DEKLARACIJA: Ovo je nedostajalo, a neophodno je za pravilo o zasićenju.
 declare PostPublishedEvent
     @role(event)
 end
@@ -35,9 +31,8 @@ end
 // --- Pravila Prvog Sloja (Brzi Detektori Signala) ---
 
 rule "Detect Trending Hashtag Spike"
-    salience 10 // Dajemo prioritet ovom pravilu da se izvrši prvo
+    salience 10
     when
-        // Detektuje statistički skok u korišćenju heštega
         $event: HashtagUsageEvent($tag: hashtag)
         not TrendingHashtag(tag == $tag)
         $baselineCount: Number(doubleValue > 0) from accumulate(
@@ -51,8 +46,7 @@ rule "Detect Trending Hashtag Spike"
         eval($recentCount.doubleValue() > (5 * ($baselineCount.doubleValue() / 7)))
     then
         System.out.println("CEP RULE (Layer 1) TRIGGERED: Hashtag #" + $tag + " is trending!");
-        // Akcija je da se ubaci novi, apstraktni događaj za drugi sloj pravila
-        insert(new TrendingHashtag($tag));
+        insert(new TrendingHashtag($tag, 0));
 end
 
 
@@ -60,13 +54,9 @@ end
 
 rule "Analyze Relevance of a Trending Hashtag"
     when
-        // OKIDAČ: Reaguje samo na događaj koji je proizvelo pravilo "Detect Trending Hashtag Spike"
         $trending: TrendingHashtag($tag: tag)
-        // DOHVATANJE KONTEKSTA: Pronalazi korisnika i njegove podatke
         $user: User($interests: interests)
-        // ANALIZA: Proverava da li je trend relevantan za interese korisnika
         eval($interests.contains($tag.replace("#", "")))
-        // Osigurava da se alert ne kreira više puta
         not RelevantTrendAlert(hashtag == $tag)
     then
         String reason = "poklapa se sa interesovanjem korisnika: " + $tag;
@@ -216,7 +206,7 @@ when
     NicheTrendActive($tag : hashtag)
     not ViralMomentumAlert()
 then
-    String msg = "🚀 VIRAL MOMENTUM WINDOW DETECTED! " +
+    String msg = "VIRAL MOMENTUM WINDOW DETECTED! " +
                  "Your followers are highly active RIGHT NOW and '" + $tag +
                  "' is trending in your niche. Perfect time to post!";
     System.out.println(">>> Rule C (FINAL): " + msg);
