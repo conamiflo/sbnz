@@ -22,11 +22,7 @@ public class Recommendation {
 
     public Recommendation() {
         this.status = "pending";
-        this.priorityScore = 0.0;
-        this.predictedEngagement = 0.0;
     }
-
-
     public Recommendation(User user, Post post) {
         this();
         this.user = user;
@@ -35,7 +31,15 @@ public class Recommendation {
         this.category = post.getCategory();
         this.content = post.getContent();
     }
-
+    public Recommendation(Long userId, Long postId, String contentType, String category, String content) {
+        this.user = new User();
+        this.user.setId(userId);
+        this.post = new Post();
+        this.post.setId(postId);
+        this.contentType = contentType;
+        this.category = category;
+        this.content = content;
+    }
     public void increasePriorityScore(double increase, String reason) {
         this.priorityScore += increase;
         if (this.reasoning == null || this.reasoning.isEmpty()) {

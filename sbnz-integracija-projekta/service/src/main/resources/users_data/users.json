@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "age": 25,
+    "location": "New York",
+    "gender": "Male",
+    "creatorType": "influencer",
+    "audienceSize": 5000,
+    "username": "john_doe",
+    "password": "$2a$10$.BBgDLG/hEXSMZEVKEbibeV3GfGk2u5cHcKOLID8WqJS.mm857WFu",
+    "interests": ["music", "travel", "sports"],
+    "posts": []
+  },
+  {
+    "id": 2,
+    "name": "string",
+    "age": 20,
+    "location": "string",
+    "gender": "string",
+    "creatorType": "string",
+    "audienceSize": 0,
+    "username": "ognjengligoric",
+    "password": "$2a$10$G5POXZkKagcoEE67vc/mGe78KVEhEK9y8KnXZ8K1JpNaJvQmv0G4e",
+    "interests": ["Technology", "Sports"],
+    "posts": []
+  },
+  {
+    "id": 3,
+    "name": "string",
+    "age": 20,
+    "location": "string",
+    "gender": "string",
+    "creatorType": "string",
+    "audienceSize": 0,
+    "username": "ognjengligoric2",
+    "password": "$2a$10$CCcFw11sERFIgm12dnnAxuONPlJ31K.yLLb5tVEjd7.tmrNgiFrCK",
+    "interests": ["Technology", "Sports"],
+    "posts": []
+  }
+]

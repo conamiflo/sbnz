@@ -26,13 +26,22 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
-    private List<String> interests;
+    private List<String> interests = new ArrayList<>();
     private String creatorType;
     private int audienceSize;
     private String username;
     private String password;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
+
+    public User(String name, int age, String location, String gender, String creatorType, int audienceSize) {
+        this.name = name;
+        this.age = age;
+        this.location = location;
+        this.gender = gender;
+        this.creatorType = creatorType;
+        this.audienceSize = audienceSize;
+    }
 
     @Override
     public String toString() {
@@ -45,6 +54,11 @@ public class User {
                 ", creatorType='" + creatorType + '\'' +
                 ", audienceSize=" + audienceSize +
                 '}';
+    }
+
+    public List<String> addInterest(String interest){
+        interests.add(interest);
+        return interests;
     }
 
 }

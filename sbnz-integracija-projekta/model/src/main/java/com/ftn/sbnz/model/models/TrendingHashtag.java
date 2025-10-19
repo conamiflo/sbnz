@@ -7,6 +7,8 @@ public class TrendingHashtag implements Serializable {
     private static final long serialVersionUID = 1L;
     private String tag;
 
+    private Integer popularity;
+
     public TrendingHashtag(String tag) {
         this.tag = tag;
     }
@@ -18,6 +20,16 @@ public class TrendingHashtag implements Serializable {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+
+
+    public Integer getPopularity() {
+        return popularity;
+    }
+
+    public void setPopularity(Integer popularity) {
+        this.popularity = popularity;
     }
 
     @Override
