@@ -1,96 +1,119 @@
+/* profile.component.css */
+
 .profile-container {
-  max-width: 800px;
-  margin: 30px auto;
+  max-width: 800px; /* Можеш подесити максималну ширину */
+  margin: 30px auto; /* Центрирај на страници */
   padding: 0 20px;
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* Користи системске фонтове */
 }
 
+/* Секција са информацијама о кориснику */
 .profile-header {
   margin-bottom: 30px;
   background-color: #fff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  text-align: center;
-}
-
-.user-details-card h1 {
-  margin-top: 15px;
-  margin-bottom: 10px;
-  color: #333;
-  font-size: 1.8em;
-}
-
-.user-details-card h1 span {
-  font-weight: normal;
-  color: #777;
-}
-
-.user-details-card p {
-  color: #555;
-  margin-bottom: 8px;
-  font-size: 0.95em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Суптилна сенка */
+  text-align: center; /* Центрирај садржај */
 }
 
 .user-avatar-large {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); /* Градијент */
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 3em;
-  margin: 0 auto 15px auto; /* Центрирај */
+  margin: 0 auto 15px auto; /* Центрирај аватар */
 }
 
-.interests-list {
+.user-details-card h1 {
   margin-top: 15px;
+  margin-bottom: 10px;
+  color: #1f2937; /* Тамно сива */
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+/* Стилови за параграфе са информацијама */
+.user-details-card p {
+  color: #4b5563; /* Средње сива */
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.user-details-card p strong {
+  color: #374151; /* Мало тамније за наглашавање */
+}
+
+/* Секција са интересовањима */
+.interests-list {
+  margin-top: 20px; /* Већи размак */
+  padding-top: 15px;
+  border-top: 1px solid #f3f4f6; /* Светла линија изнад */
   text-align: center;
 }
 
 .interests-list strong {
   display: block;
-  margin-bottom: 8px;
-  color: #444;
+  margin-bottom: 10px;
+  color: #374151; /* Тамније сива */
+  font-size: 0.9em;
+  font-weight: 600;
 }
 
 .interest-tag {
-  display: inline-block; /* Да буду у реду */
+  display: inline-block;
   background-color: #e0f2fe; /* Светло плава */
   color: #0c4a6e; /* Тамно плава */
-  padding: 4px 10px;
+  padding: 5px 12px; /* Мало већи padding */
   border-radius: 15px;
   font-size: 0.8em;
-  margin: 3px;
+  font-weight: 500;
+  margin: 4px; /* Мали размак */
+  transition: background-color 0.2s;
+}
+.interest-tag:hover {
+  background-color: #bae6fd; /* Мало тамнија плава на ховер */
 }
 
+/* Дугме за уређивање профила */
 .edit-profile-btn {
-  margin-top: 20px;
-  padding: 8px 15px;
-  background-color: #eee;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  margin-top: 25px;
+  padding: 10px 20px;
+  background-color: #f3f4f6; /* Светло сива */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9em;
-  color: #333;
+  font-weight: 500;
+  color: #374151;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 .edit-profile-btn:hover {
-  background-color: #ddd;
+  background-color: #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
+/* Линија између секција */
 .section-divider {
   border: none;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e5e7eb; /* Мало тамнија линија */
   margin: 40px 0;
 }
 
+/* Секција са постовима */
 .user-posts-section h2 {
   text-align: center;
-  margin-bottom: 25px;
-  color: #333;
+  margin-bottom: 30px; /* Већи размак испод наслова */
+  color: #1f2937; /* Тамно сива */
+  font-size: 1.5em;
+  font-weight: 600;
 }
 
 /* loading, error, no-content стилови */
@@ -99,16 +122,41 @@
 .no-content-message {
   text-align: center;
   padding: 30px 20px;
-  color: #666;
+  color: #6b7280; /* Средње сива */
   font-size: 1.0em;
-  border: 1px dashed #ddd;
+  border: 1px dashed #d1d5db; /* Мало тамнија испрекидана линија */
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #f9fafb; /* Светлија позадина */
   margin-bottom: 20px;
 }
-.error-message { color: #d9534f; background-color: #f2dede; border-color: #ebccd1; }
+.error-message { color: #dc2626; background-color: #fef2f2; border-color: #fecaca; }
 
-app-post-card {
-  display: block;
-  margin-bottom: 20px;
+/* ===== СТИЛОВИ ЗА GRID РАСПОРЕД ПОСТОВА ===== */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 колоне */
+  gap: 20px; /* Размак */
 }
+
+/* Подеси app-post-card унутар грида */
+.posts-grid app-post-card {
+  margin-bottom: 0; /* Уклони доњу маргину */
+  display: block;
+}
+
+/* Респонзивност за grid */
+@media (max-width: 992px) { /* Таблети */
+  .posts-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 колоне */
+  }
+}
+
+@media (max-width: 576px) { /* Телефони */
+  .posts-grid {
+    grid-template-columns: 1fr; /* 1 колона */
+  }
+  .posts-grid app-post-card:not(:last-child) {
+    margin-bottom: 20px; /* Врати маргину кад је једна колона */
+  }
+}
+/* ============================================== */
